@@ -1,0 +1,1517 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Petualangan Kode JS</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;600&family=Press+Start+2P&display=swap">
+<style>
+/* Layout: peta level bergaya gim (kartu level berurutan), tiap level berisi 5 misi bertab: Misi, Lab, Tantangan, Kuis, Refleksi.
+   Warna: dasar tinta ungu-biru, empat aksen terang (pink, mint, matahari, langit) + ungu dan oranye untuk variasi level. */
+:root {
+  --bg:#0e1020; --bg2:#151834; --bg3:#1e2247; --line:#2c3263;
+  --fg:#eef0ff; --muted:#a3a9d6;
+  --pink:#ff5c8a; --mint:#35e0b4; --sun:#ffc93c; --sky:#5bb8ff; --violet:#a78bfa; --orange:#ff9156;
+  --on:#1a0b14; --sun-ink:#1a1200;
+  --ok:#35e0b4; --bad:#ff7b7b;
+  --glow1:rgba(255,92,138,.17); --glow2:rgba(91,184,255,.15);
+  --code-bg:#0a0c1b; --code-bar:#11142b; --code-fg:#e8ebff; --code-muted:#5f6699; --code-line:#232850;
+  --t-ask:#7cc8ff; --t-ans:#4be3bc; --t-err:#ff8a8a; --t-warn:#ffd466;
+  --shadow:0 12px 32px rgba(0,0,0,.35);
+  --display:'Bricolage Grotesque','Trebuchet MS',system-ui,sans-serif;
+  --body:'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  --pixel:'Press Start 2P','Courier New',monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg:#f5f3ff; --bg2:#ffffff; --bg3:#ebe8fb; --line:#d6d1f0;
+    --fg:#1b1740; --muted:#5b5788;
+    --pink:#e0245e; --mint:#0b9f7b; --sun:#e6a100; --sky:#1f7fd6; --violet:#6d4ee0; --orange:#e0621f;
+    --on:#ffffff; --ok:#087a5c; --bad:#c9283f;
+    --glow1:rgba(224,36,94,.10); --glow2:rgba(31,127,214,.10);
+    --code-bg:#1b1840; --code-bar:#26225a; --code-fg:#f0f0ff; --code-muted:#8b87c4; --code-line:#322e6e;
+    --shadow:0 10px 26px rgba(60,40,140,.14);
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"] {
+  --bg:#f5f3ff; --bg2:#ffffff; --bg3:#ebe8fb; --line:#d6d1f0;
+  --fg:#1b1740; --muted:#5b5788;
+  --pink:#e0245e; --mint:#0b9f7b; --sun:#e6a100; --sky:#1f7fd6; --violet:#6d4ee0; --orange:#e0621f;
+  --on:#ffffff; --ok:#087a5c; --bad:#c9283f;
+  --glow1:rgba(224,36,94,.10); --glow2:rgba(31,127,214,.10);
+  --code-bg:#1b1840; --code-bar:#26225a; --code-fg:#f0f0ff; --code-muted:#8b87c4; --code-line:#322e6e;
+  --shadow:0 10px 26px rgba(60,40,140,.14);
+  color-scheme:light;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg); color:var(--fg); font-family:var(--body); font-size:16px; line-height:1.6;
+  background-image:
+    radial-gradient(600px 420px at 8% -4%, var(--glow1), transparent 70%),
+    radial-gradient(700px 480px at 100% 6%, var(--glow2), transparent 70%),
+    radial-gradient(color-mix(in srgb, var(--fg) 9%, transparent) 1px, transparent 1.2px);
+  background-size:auto, auto, 22px 22px;
+  background-attachment:fixed;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:0 56px;
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+[v-cloak]{display:none}
+h1,h2,h3{font-family:var(--display);line-height:1.12;margin:0;text-wrap:balance}
+p{margin:0}
+a{color:inherit}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.px{font-family:var(--pixel);font-size:10px;letter-spacing:.04em;line-height:1.4}
+.wrap{max-width:1120px;margin-inline:auto}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;margin-inline:calc(-1 * max(16px, env(safe-area-inset-left, 0px))) calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
+  padding-inline:max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px));
+  background:color-mix(in srgb, var(--bg) 86%, transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1120px;margin-inline:auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--display);font-weight:800;font-size:18px}
+.brand-mark{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--pink);color:var(--on);font-family:var(--mono);font-weight:600;font-size:13px}
+.top-r{display:flex;align-items:center;gap:8px;min-width:0}
+.xp-pill{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border-radius:999px;background:var(--bg2);border:1px solid var(--line);min-width:0}
+.xp-pill .px{background:var(--sun);color:var(--sun-ink);padding:5px 6px;border-radius:7px}
+.xp-pill b{font-variant-numeric:tabular-nums;font-size:15px}
+.xp-pill .rank{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icon-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--bg2);display:grid;place-items:center;font-size:17px}
+.icon-btn:hover{background:var(--bg3)}
+.prog{height:3px;background:transparent;margin-inline:calc(-1 * max(16px, env(safe-area-inset-left, 0px))) calc(-1 * max(16px, env(safe-area-inset-right, 0px)))}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--pink),var(--sun),var(--mint));transition:width .5s}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:10px 18px;font-weight:700;background:var(--pink);color:var(--on);text-decoration:none;box-shadow:0 3px 0 color-mix(in srgb, var(--pink) 55%, #000);transition:transform .12s, box-shadow .12s}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 color-mix(in srgb, var(--pink) 55%, #000)}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line);box-shadow:none}
+.btn.ghost:hover{background:var(--bg3)}
+.btn.small{padding:6px 12px;font-size:13px;border-radius:9px}
+.btn[disabled]{opacity:.5;cursor:not-allowed;transform:none}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--bg2);font-size:13px;color:var(--muted)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:36px;align-items:center;padding-block:44px 28px}
+.hero h1{font-size:clamp(38px,6.2vw,68px);font-weight:800;letter-spacing:-.02em}
+.hero h1 em{font-style:normal;color:var(--pink)}
+.hero h1 span{display:inline-block;background:linear-gradient(transparent 62%, color-mix(in srgb, var(--sun) 55%, transparent) 62%)}
+.hero .lead{margin-top:16px;font-size:18px;color:var(--muted);max-width:46ch}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+.stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.hero-pad{min-width:0}
+.hero-note{margin-top:10px;font-size:13px;color:var(--muted)}
+
+/* code pad */
+.pad{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--code-bg);box-shadow:var(--shadow);min-width:0}
+.pad-bar{display:flex;align-items:center;gap:10px;padding:8px 10px 8px 14px;background:var(--code-bar);border-bottom:1px solid var(--code-line)}
+.lights{display:flex;gap:6px}
+.lights i{width:10px;height:10px;border-radius:50%;background:var(--pink)}
+.lights i:nth-child(2){background:var(--sun)}
+.lights i:nth-child(3){background:var(--mint)}
+.fname{font:600 12px var(--mono);color:var(--code-fg);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-left:4px}
+.editor{display:grid;grid-template-columns:auto minmax(0,1fr)}
+.gutter{margin:0;overflow:hidden;text-align:right;padding:12px 8px 12px 12px;color:var(--code-muted);font:13px/20.8px var(--mono);user-select:none}
+.code{resize:none;border:0;outline:0;background:transparent;color:var(--code-fg);font:13px/20.8px var(--mono);padding:12px 12px 12px 4px;white-space:pre;overflow:auto;tab-size:2;width:100%;display:block}
+.code:focus-visible{outline:2px solid var(--sky);outline-offset:-2px}
+.inp{display:flex;gap:10px;align-items:flex-start;padding:8px 14px;border-top:1px solid var(--code-line);background:var(--code-bar)}
+.inp label{font:600 11px var(--mono);color:var(--t-ask);padding-top:7px;flex:none;max-width:9em}
+.inp textarea{flex:1;min-width:0;resize:vertical;background:var(--code-bg);color:var(--code-fg);border:1px solid var(--code-line);border-radius:8px;font:13px/1.5 var(--mono);padding:6px 8px}
+.term{border-top:1px solid var(--code-line);padding:10px 14px;font:13px/1.6 var(--mono);color:var(--code-fg);min-height:54px;max-height:280px;overflow:auto}
+.term .idle{color:var(--code-muted)}
+.term div{white-space:pre-wrap;word-break:break-word}
+.l-ask{color:var(--t-ask)} .l-ans{color:var(--t-ans)} .l-warn{color:var(--t-warn)} .l-err{color:var(--t-err)}
+.errbox{margin-top:8px;border:1px solid color-mix(in srgb, var(--t-err) 60%, transparent);border-radius:10px;padding:10px 12px;background:color-mix(in srgb, var(--t-err) 10%, transparent)}
+.errbox b{color:var(--t-err);font-family:var(--mono)}
+.errbox p{margin-top:6px;color:var(--code-fg);font:14px/1.5 var(--body)}
+.pad-hint{font-size:12px;color:var(--code-muted);padding:0 14px 10px}
+
+/* sections */
+.sec{padding-block:36px 8px}
+.sec-h{display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.sec-h h2{font-size:clamp(26px,4vw,38px);font-weight:800}
+.sec-h p{color:var(--muted);max-width:52ch}
+
+/* level map */
+.map{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;counter-reset:none}
+.lcard{display:flex;flex-direction:column;gap:10px;text-decoration:none;padding:18px;border-radius:18px;background:var(--bg2);border:1px solid var(--line);position:relative;transition:transform .15s,border-color .15s,box-shadow .15s;min-width:0}
+.lcard:hover{transform:translateY(-3px);border-color:var(--c);box-shadow:var(--shadow)}
+.lcard .tag{align-self:flex-start;padding:6px 8px;border-radius:8px;background:var(--c);color:var(--on)}
+.lcard[data-c="sun"] .tag,.lcard[data-c="mint"] .tag,.lcard[data-c="sky"] .tag,.lcard[data-c="orange"] .tag{color:var(--sun-ink)}
+.lcard h3{font-size:22px;font-weight:700}
+.lcard .sub{color:var(--muted);font-size:14px}
+.lcard .foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:8px;font-size:13px;color:var(--muted)}
+.lcard .state{display:inline-flex;align-items:center;gap:6px;font-weight:700}
+.lcard.done{background:color-mix(in srgb, var(--c) 9%, var(--bg2))}
+.lcard.done .state{color:var(--ok)}
+.bar{height:6px;border-radius:99px;background:var(--bg3);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--c);border-radius:99px}
+
+/* tp grid */
+.tps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.tpc{padding:20px;border-radius:18px;border:1px dashed var(--line);background:color-mix(in srgb, var(--bg2) 70%, transparent)}
+.tpc .px{color:var(--sun)}
+.tpc h3{font-size:20px;margin:8px 0 6px}
+.tpc p{color:var(--muted);font-size:15px}
+
+/* level page */
+.crumb{padding-block:20px 6px;font-size:14px}
+.crumb a{color:var(--muted);text-decoration:none}
+.crumb a:hover{color:var(--fg)}
+.lv-head{display:grid;gap:10px;padding-block:6px 20px}
+.lv-head .tag{justify-self:start;padding:7px 9px;border-radius:8px;background:var(--c);color:var(--on)}
+.lv-head[data-c="sun"] .tag,.lv-head[data-c="mint"] .tag,.lv-head[data-c="sky"] .tag,.lv-head[data-c="orange"] .tag{color:var(--sun-ink)}
+.lv-head h1{font-size:clamp(34px,6vw,60px);font-weight:800;letter-spacing:-.02em}
+.lv-head .sub{color:var(--muted);font-size:17px}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:5px;border-radius:16px;background:var(--bg2);border:1px solid var(--line);margin-bottom:22px;scrollbar-width:none}
+.tabs button{flex:1 0 auto;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;background:transparent;padding:10px 16px;border-radius:11px;font-weight:700;color:var(--muted);white-space:nowrap}
+.tabs button:hover{color:var(--fg)}
+.tabs button.on{background:var(--c);color:var(--on)}
+.lv-head[data-c="sun"] ~ .tabs button.on,.lv-head[data-c="mint"] ~ .tabs button.on,.lv-head[data-c="sky"] ~ .tabs button.on,.lv-head[data-c="orange"] ~ .tabs button.on{color:var(--sun-ink)}
+.tabs .dot{width:8px;height:8px;border-radius:50%;border:2px solid currentColor;opacity:.55}
+.tabs .dot.on{background:currentColor;opacity:1}
+.stack{display:grid;gap:18px}
+.card{padding:22px;border-radius:18px;background:var(--bg2);border:1px solid var(--line);min-width:0}
+.card h3{font-size:22px;margin-bottom:8px}
+.card p+p{margin-top:10px}
+.pemantik{display:grid;gap:8px;padding:24px;border-radius:20px;background:linear-gradient(135deg,color-mix(in srgb, var(--c) 22%, var(--bg2)),var(--bg2));border:1px solid color-mix(in srgb, var(--c) 45%, var(--line))}
+.pemantik .px{color:var(--c)}
+.pemantik q{font-family:var(--display);font-size:clamp(22px,3.6vw,32px);font-weight:700;line-height:1.2;quotes:none;text-wrap:balance}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.concept{padding:18px;border-radius:16px;background:var(--bg2);border:1px solid var(--line)}
+.concept h4{margin:0 0 6px;font:700 17px var(--display)}
+.concept p{color:var(--muted);font-size:15px}
+.concept code,.card code,.brief code{font:600 .9em var(--mono);padding:1px 6px;border-radius:6px;background:var(--bg3);color:var(--fg)}
+.sub-tabs{display:flex;gap:8px;flex-wrap:wrap}
+.sub-tabs button{padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--bg2);font:600 13px var(--mono)}
+.sub-tabs button.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.note{font-size:14px;color:var(--muted)}
+
+/* breathing */
+.breath{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center}
+.orb{width:120px;height:120px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--sky) 70%, #fff), var(--c));color:var(--sun-ink);font:700 13px var(--body);text-align:center;transition:transform 4s ease-in-out;box-shadow:0 0 0 10px color-mix(in srgb, var(--c) 18%, transparent),0 0 40px color-mix(in srgb, var(--c) 45%, transparent)}
+.orb.in{transform:scale(1.28)} .orb.out{transform:scale(.8)}
+.breath p.say{font-size:18px;font-weight:700}
+
+/* for builder */
+.fb{display:grid;gap:14px}
+.fb-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+.fb label{display:grid;gap:4px;font:600 12px var(--mono);color:var(--muted)}
+.fb input[type=number]{width:84px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font:600 15px var(--mono)}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;background:var(--bg);padding:8px 14px;font-weight:700;color:var(--muted)}
+.seg button.on{background:var(--orange);color:var(--sun-ink)}
+.fb-code{margin:0;padding:14px;border-radius:12px;background:var(--code-bg);color:var(--code-fg);font:600 14px var(--mono);overflow-x:auto}
+.fb-cells{display:flex;flex-wrap:wrap;gap:8px;min-height:44px}
+.fb-cells span{padding:8px 12px;border-radius:10px;background:color-mix(in srgb, var(--orange) 22%, var(--bg2));border:1px solid color-mix(in srgb, var(--orange) 55%, var(--line));font:700 14px var(--mono);animation:pop .25s both}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+
+/* challenge */
+.brief{display:grid;gap:10px}
+.brief ul{margin:0;padding-left:20px;display:grid;gap:4px;color:var(--muted)}
+.checks{display:grid;gap:8px;margin-top:4px}
+.chk{display:grid;grid-template-columns:auto 1fr;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);font-size:14px}
+.chk.ok{border-color:color-mix(in srgb, var(--ok) 55%, var(--line));background:color-mix(in srgb, var(--ok) 9%, var(--bg2))}
+.chk.no{border-color:color-mix(in srgb, var(--bad) 55%, var(--line))}
+.chk .ic{font-weight:800;color:var(--bad)} .chk.ok .ic{color:var(--ok)}
+.chk small{display:block;color:var(--muted);font:12px var(--mono);margin-top:3px;word-break:break-word}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.clear{display:grid;gap:6px;justify-items:center;text-align:center;padding:26px;border-radius:20px;background:linear-gradient(135deg,color-mix(in srgb, var(--mint) 24%, var(--bg2)),color-mix(in srgb, var(--sun) 18%, var(--bg2)));border:1px solid color-mix(in srgb, var(--mint) 55%, var(--line));animation:rise .5s both}
+.clear .px{font-size:16px;color:var(--ok);line-height:1.5}
+.clear h3{font-size:24px}
+@keyframes rise{from{transform:translateY(14px) scale(.96);opacity:0}to{transform:none;opacity:1}}
+
+/* quiz */
+.qcard{padding:20px;border-radius:18px;background:var(--bg2);border:1px solid var(--line);display:grid;gap:12px}
+.qcard h3{font-size:20px}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);font-weight:500}
+.opt:not([disabled]):hover{border-color:var(--sky);background:var(--bg3)}
+.opt[disabled]{cursor:default}
+.opt.right{border-color:var(--ok);background:color-mix(in srgb, var(--ok) 14%, var(--bg))}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb, var(--bad) 12%, var(--bg))}
+.why{font-size:14px;color:var(--muted);padding:10px 12px;border-radius:12px;background:var(--bg3)}
+.score{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+/* journal */
+.jurnal{width:100%;min-height:160px;resize:vertical;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font:16px/1.6 var(--body)}
+
+/* nav bottom */
+.lv-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:34px}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;padding:11px 18px;border-radius:999px;background:var(--sun);color:var(--sun-ink);font-weight:800;box-shadow:var(--shadow);animation:rise .3s both;max-width:calc(100% - 32px);text-align:center}
+
+.foot-note{margin-top:44px;padding-top:20px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;color:var(--muted);font-size:14px}
+
+/* lembar hasil belajar: kertas putih tetap putih di tema gelap, supaya hasil salinan dan cetak konsisten */
+:root{--paper:#ffffff;--ink:#1b1740;--ink2:#4d4a7a;--paper-line:#d3d0e8;--paper-fill:#f4f3fb;--paper-ok:#0a7d5f;--paper-no:#c0264a}
+.lembar-link{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--bg2);text-decoration:none;font-weight:700;font-size:14px;white-space:nowrap}
+.lembar-link:hover{background:var(--bg3)}
+.idgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.idgrid label,.opsi label.f{display:grid;gap:6px;font-size:13px;font-weight:700;color:var(--muted)}
+.idgrid label{min-width:0}
+.idgrid input{width:100%;min-width:0;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font:500 16px var(--body)}
+.opsi{display:flex;flex-wrap:wrap;gap:10px 22px}
+.opsi label.c{display:flex;align-items:center;gap:8px;font-size:15px;cursor:pointer}
+.opsi input{width:18px;height:18px;accent-color:var(--pink)}
+.steps{margin:0;padding-left:20px;display:grid;gap:4px;color:var(--muted);font-size:15px}
+.warn{padding:10px 12px;border-radius:12px;background:color-mix(in srgb, var(--sun) 16%, var(--bg2));border:1px solid color-mix(in srgb, var(--sun) 50%, var(--line));font-size:14px}
+.fallback{width:100%;min-height:140px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font:12px/1.5 var(--mono);padding:10px}
+.card h3.sm{font-size:18px;margin:6px 0 2px}
+
+.sheet{background:var(--paper);color:var(--ink);border-radius:8px;padding:36px 40px;max-width:880px;margin:20px auto 0;box-shadow:var(--shadow);font:14px/1.55 var(--body);min-width:0}
+.sheet h1,.sheet h2,.sheet h3,.sheet h4{font-family:var(--display);color:var(--ink)}
+.sheet .kop{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:3px solid var(--ink);padding-bottom:12px}
+.sheet .kop h2{font-size:26px;font-weight:800;letter-spacing:-.01em}
+.sheet .kop p{color:var(--ink2);font-size:13px;margin-top:2px}
+.sheet .kop .px{font-size:9px;border:2px solid var(--ink);padding:7px 8px;border-radius:6px;white-space:nowrap}
+.sheet .tbl-w{overflow-x:auto;margin-top:10px}
+.sheet table{border-collapse:collapse;width:100%;font-size:13px}
+.sheet th,.sheet td{border:1px solid var(--paper-line);padding:7px 10px;text-align:left;vertical-align:top}
+.sheet th{background:var(--paper-fill);font-weight:700}
+.sheet .idt td:first-child{width:34%;background:var(--paper-fill);font-weight:700}
+.sheet .idt td.v{min-height:30px}
+.sheet .blank{color:var(--paper-no);font-style:italic}
+.sheet h3.sec-t{font-size:17px;font-weight:800;margin-top:22px;padding-bottom:4px;border-bottom:1px solid var(--paper-line)}
+.sheet .stat{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.sheet .stat span{padding:5px 10px;border-radius:999px;background:var(--paper-fill);border:1px solid var(--paper-line);font-size:13px}
+.sheet .ls{margin-top:24px;padding-top:2px}
+.sheet .ls-h{font-size:19px;font-weight:800;background:var(--ink);color:var(--paper);padding:8px 12px;border-radius:6px}
+.sheet .ls-h small{display:block;font:500 12px var(--body);opacity:.85;margin-top:2px}
+.sheet h4{font-size:14px;font-weight:800;margin:14px 0 4px;color:var(--ink)}
+.sheet .exp{margin-top:8px;break-inside:avoid}
+.sheet .exp-t{font:700 12px var(--mono);color:var(--ink2)}
+.sheet .lbl{font:700 11px var(--mono);color:var(--ink2);margin-top:6px;text-transform:uppercase;letter-spacing:.06em}
+.sheet pre{margin:4px 0 0;padding:9px 11px;border-radius:6px;font:12px/1.5 var(--mono);white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
+.sheet .pcode{background:var(--paper-fill);border:1px solid var(--paper-line);color:var(--ink)}
+.sheet .pout{background:var(--paper);border:1px dashed var(--ink2);color:var(--ink)}
+.sheet .badge{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:800;font-size:12px;border:1.5px solid currentColor}
+.sheet .badge.ok{color:var(--paper-ok)} .sheet .badge.no{color:var(--paper-no)}
+.sheet ul.rs{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:2px;font-size:13px}
+.sheet ul.rs .y{color:var(--paper-ok);font-weight:800} .sheet ul.rs .n{color:var(--paper-no);font-weight:800}
+.sheet .empty{color:var(--ink2);font-style:italic;margin-top:4px}
+.sheet .qq{color:var(--ink2);font-style:italic}
+.sheet .jawab{margin-top:4px;padding:9px 11px;border:1px solid var(--paper-line);border-radius:6px;background:var(--paper-fill);white-space:pre-wrap;overflow-wrap:anywhere}
+.sheet .ok-t{color:var(--paper-ok);font-weight:700} .sheet .no-t{color:var(--paper-no);font-weight:700}
+.sheet .nilai td{height:34px}
+.sheet .catatan{margin-top:10px;border:1px solid var(--paper-line);border-radius:6px;min-height:84px;padding:8px 10px;color:var(--ink2);font-size:12px}
+.sheet .ttd{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:22px;break-inside:avoid}
+.sheet .ttd div{display:grid;gap:56px;text-align:center;font-size:13px}
+.sheet .ttd i{display:block;border-top:1px solid var(--ink);padding-top:4px;font-style:normal;font-weight:700}
+.sheet .tgl{color:var(--ink2);font-size:12px;margin-top:12px}
+
+@media (max-width:520px){
+  .lembar-link .lt{display:none}
+  .lembar-link{padding:0;width:38px;justify-content:center}
+  .sheet{padding:18px 14px}
+  .sheet .kop{flex-direction:column}
+}
+@page{size:A4;margin:14mm}
+@media print{
+  html,body{background:#fff!important}
+  body{padding:0!important;background-image:none!important}
+  body::before,.top,.no-print,.foot-note,.toast,.crumb{display:none!important}
+  .wrap{max-width:none!important}
+  .sheet{box-shadow:none!important;border-radius:0;padding:0;max-width:none;margin:0}
+  .sheet .ls{break-before:auto}
+  .sheet .ls-h,.sheet h4{break-after:avoid}
+  .sheet tr,.sheet pre{break-inside:avoid}
+  .sheet *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr;padding-block:28px 12px}
+  .xp-pill .rank{display:none}
+}
+@media (max-width:520px){
+  .breath{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .brand span.t{display:none}
+  .card,.qcard,.pemantik{padding:16px}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+
+<div id="app" v-cloak>
+  <header class="top">
+    <div class="top-in">
+      <a class="brand" href="#peta"><span class="brand-mark">{ }</span><span class="t">Petualangan Kode</span></a>
+      <div class="top-r">
+        <div class="xp-pill" :title="'Peringkat: ' + rank.name">
+          <span class="px">XP</span><b>{{ xp }}</b><span class="rank">{{ rank.name }}</span>
+        </div>
+        <a class="lembar-link" href="#lembar" title="Lembar hasil belajar" aria-label="Lembar hasil belajar"><span aria-hidden="true">▤</span><span class="lt">Lembar hasil</span></a>
+        <button class="icon-btn" @click="toggleTheme" aria-label="Ganti tema terang atau gelap" title="Ganti tema">◐</button>
+      </div>
+    </div>
+    <div class="prog" aria-hidden="true"><i :style="{ width: pct + '%' }"></i></div>
+  </header>
+
+  <!-- ============ LEMBAR HASIL BELAJAR ============ -->
+  <main class="wrap" v-if="hash === 'lembar'">
+    <nav class="crumb no-print"><a href="#peta">← Peta level</a></nav>
+    <div class="sec-h no-print" style="margin-top:6px">
+      <h2>Lembar hasil belajar</h2>
+      <p>Rekap percobaan program, tantangan, jawaban kuis, dan refleksimu dalam satu lembar rapi untuk dikumpulkan ke guru.</p>
+    </div>
+
+    <section class="card no-print stack">
+      <div>
+        <h3 class="sm">1. Isi identitas</h3>
+        <div class="idgrid" style="margin-top:10px">
+          <label for="f-nama">Nama lengkap<input id="f-nama" v-model="state.profil.nama" autocomplete="name" placeholder="Nama sesuai absen"></label>
+          <label for="f-kelas">Kelas<input id="f-kelas" v-model="state.profil.kelas" placeholder="Contoh: X RPL 1"></label>
+          <label for="f-absen">Nomor absen<input id="f-absen" v-model="state.profil.absen" inputmode="numeric" placeholder="Contoh: 12"></label>
+          <label for="f-sekolah">Sekolah (opsional)<input id="f-sekolah" v-model="state.profil.sekolah" placeholder="Nama sekolah"></label>
+          <label for="f-guru">Nama guru (opsional)<input id="f-guru" v-model="state.profil.guru" placeholder="Guru mata pelajaran"></label>
+        </div>
+        <p class="warn" v-if="!identOk" style="margin-top:12px">Lengkapi nama, kelas, dan nomor absen sebelum lembar dikumpulkan.</p>
+      </div>
+      <div>
+        <h3 class="sm">2. Pilih isi lembar</h3>
+        <div class="opsi" style="margin-top:8px">
+          <label class="c"><input type="checkbox" v-model="opsi.kode"> Sertakan kode program</label>
+          <label class="c"><input type="checkbox" v-model="opsi.output"> Sertakan output program</label>
+          <label class="c"><input type="checkbox" v-model="opsi.kosong"> Tampilkan level yang belum dikerjakan</label>
+        </div>
+      </div>
+      <div>
+        <h3 class="sm">3. Simpan sebagai PDF</h3>
+        <ol class="steps" style="margin-top:8px">
+          <li>Tekan <b>Salin lembar</b> di bawah.</li>
+          <li>Buka Google Docs atau Word, lalu tempel (Ctrl + V, atau Cmd + V di Mac).</li>
+          <li>Pilih Berkas lalu Unduh sebagai PDF (Google Docs), atau Simpan sebagai PDF (Word).</li>
+        </ol>
+        <div class="actions" style="margin-top:12px">
+          <button class="btn" @click="copySheet">Salin lembar</button>
+          <button class="btn ghost" @click="copyText">Salin sebagai teks</button>
+        </div>
+        <p class="note" style="margin-top:10px" v-if="copyMsg" role="status">{{ copyMsg }}</p>
+        <textarea id="fallback-text" class="fallback" v-if="fallbackText" readonly :value="fallbackText" aria-label="Teks lembar hasil belajar" style="margin-top:10px"></textarea>
+        <p class="note" style="margin-top:10px">Halaman ini tidak bisa membuka dialog cetak atau mengunduh file langsung. Menyalin lalu menempel ke Docs atau Word adalah cara yang andal. Jika perangkatmu punya fitur cetak ke PDF untuk halaman ini, lembarnya sudah disiapkan untuk kertas A4.</p>
+      </div>
+    </section>
+
+    <article class="sheet" id="sheet">
+      <div class="kop">
+        <div>
+          <h2>Lembar Hasil Belajar</h2>
+          <p>Dasar Pemrograman · Fase E · Kelas X RPL · JavaScript</p>
+        </div>
+        <span class="px">PETUALANGAN KODE</span>
+      </div>
+
+      <div class="tbl-w">
+        <table class="idt">
+          <tbody>
+            <tr><td>Nama</td><td class="v"><span v-if="state.profil.nama.trim()">{{ state.profil.nama }}</span><span v-else class="blank">belum diisi</span></td></tr>
+            <tr><td>Kelas</td><td class="v"><span v-if="state.profil.kelas.trim()">{{ state.profil.kelas }}</span><span v-else class="blank">belum diisi</span></td></tr>
+            <tr><td>Nomor absen</td><td class="v"><span v-if="String(state.profil.absen).trim()">{{ state.profil.absen }}</span><span v-else class="blank">belum diisi</span></td></tr>
+            <tr v-if="state.profil.sekolah.trim()"><td>Sekolah</td><td class="v">{{ state.profil.sekolah }}</td></tr>
+            <tr v-if="state.profil.guru.trim()"><td>Guru</td><td class="v">{{ state.profil.guru }}</td></tr>
+            <tr><td>Tanggal</td><td class="v">{{ todayStr }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="sec-t">Ringkasan</h3>
+      <div class="stat">
+        <span>Level selesai: <b>{{ doneCount }} / {{ levels.length }}</b></span>
+        <span>Total XP: <b>{{ xp }} / {{ maxXp }}</b></span>
+        <span>Kuis benar: <b>{{ kuisBenar }} / {{ kuisSoal }}</b></span>
+        <span>Peringkat: <b>{{ rank.name }}</b></span>
+      </div>
+      <div class="tbl-w">
+        <table>
+          <thead><tr><th>Level</th><th>Tantangan</th><th>Kuis</th><th>Refleksi</th><th>XP</th></tr></thead>
+          <tbody>
+            <tr v-for="r in ringkas" :key="r.id">
+              <td>{{ r.id }}. {{ r.game }}</td>
+              <td><span :class="r.tantangan === 'Lulus' ? 'ok-t' : 'no-t'">{{ r.tantangan }}</span></td>
+              <td>{{ r.kuis }}</td>
+              <td>{{ r.refleksi }}</td>
+              <td>{{ r.xp }} / {{ LEVEL_MAX }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="empty" v-if="!sheetLevels.length" style="margin-top:22px">Belum ada hasil yang bisa ditampilkan. Kerjakan level di peta, atau centang "Tampilkan level yang belum dikerjakan".</p>
+
+      <section class="ls" v-for="l in sheetLevels" :key="l.id">
+        <h3 class="ls-h">Level {{ l.id }}: {{ l.game }}<small>{{ l.title }} · {{ l.tp }}</small></h3>
+
+        <h4>A. Percobaan program</h4>
+        <template v-if="labList(l).length">
+          <div class="exp" v-for="e in labList(l)" :key="e.name">
+            <p class="exp-t">{{ e.name }}</p>
+            <pre class="pcode" v-if="opsi.kode">{{ e.code }}</pre>
+            <template v-if="opsi.output">
+              <p class="lbl">Output</p>
+              <pre class="pout">{{ outText(e) }}</pre>
+            </template>
+          </div>
+        </template>
+        <p class="empty" v-else>Belum ada percobaan yang dijalankan.</p>
+
+        <h4>B. Tantangan: {{ l.tantangan.judul }}</h4>
+        <p><span class="badge" :class="state.cleared[l.id] ? 'ok' : 'no'">{{ state.cleared[l.id] ? 'Lulus' : 'Belum lulus' }}</span></p>
+        <ul class="rs" v-if="tugas(l) && tugas(l).results">
+          <li v-for="(r, i) in tugas(l).results" :key="i"><span :class="r.ok ? 'y' : 'n'">{{ r.ok ? '✓' : '✕' }}</span> {{ r.label }}</li>
+        </ul>
+        <template v-if="tugas(l) && tugas(l).code">
+          <p class="lbl" v-if="opsi.kode">Kode jawaban</p>
+          <pre class="pcode" v-if="opsi.kode">{{ tugas(l).code }}</pre>
+        </template>
+        <p class="empty" v-else>Tantangan belum dikerjakan.</p>
+
+        <h4>C. Jawaban kuis</h4>
+        <div class="tbl-w">
+          <table>
+            <thead><tr><th style="width:34px">No</th><th>Pertanyaan</th><th>Jawabanku</th><th style="width:92px">Hasil</th></tr></thead>
+            <tbody>
+              <tr v-for="r in quizRows(l)" :key="r.no">
+                <td>{{ r.no }}</td>
+                <td>{{ r.q }}</td>
+                <td>{{ r.jawab }}<template v-if="r.done && !r.benar"><br><span class="qq">Kunci: {{ r.kunci }}</span></template></td>
+                <td><span v-if="!r.done" class="no-t">Kosong</span><span v-else :class="r.benar ? 'ok-t' : 'no-t'">{{ r.benar ? 'Benar' : 'Salah' }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>D. Refleksi</h4>
+        <p class="qq">{{ l.refleksi }}</p>
+        <div class="jawab" v-if="jurnalText(l)">{{ jurnalText(l) }}</div>
+        <p class="empty" v-else>Belum diisi.</p>
+      </section>
+
+      <h3 class="sec-t">Penilaian guru</h3>
+      <div class="tbl-w">
+        <table class="nilai">
+          <thead><tr><th>Komponen</th><th style="width:90px">Skor maks</th><th style="width:110px">Nilai</th></tr></thead>
+          <tbody>
+            <tr><td>Percobaan program (kebenaran dan kerapian)</td><td>20</td><td></td></tr>
+            <tr><td>Tantangan</td><td>40</td><td></td></tr>
+            <tr><td>Kuis</td><td>20</td><td></td></tr>
+            <tr><td>Refleksi</td><td>20</td><td></td></tr>
+            <tr><td><b>Nilai akhir</b></td><td><b>100</b></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="catatan">Catatan guru:</div>
+      <div class="ttd">
+        <div><span>Siswa</span><i>{{ state.profil.nama.trim() || '(nama siswa)' }}</i></div>
+        <div><span>Guru Mata Pelajaran</span><i>{{ state.profil.guru.trim() || '(nama guru)' }}</i></div>
+      </div>
+      <p class="tgl">Dicetak dari Petualangan Kode pada {{ todayStr }}.</p>
+    </article>
+  </main>
+
+  <!-- ============ PETA ============ -->
+  <main class="wrap" v-else-if="!level">
+    <section class="hero">
+      <div>
+        <span class="chip px" style="font-size:9px">DASAR PEMROGRAMAN · KELAS X RPL</span>
+        <h1 style="margin-top:14px">Tulis kode. <em>Jalankan.</em> <span>Naik level.</span></h1>
+        <p class="lead">Delapan level belajar JavaScript lewat gim, simulasi, dan tantangan. Semua kode langsung jalan di halaman ini, dari laptop maupun HP.</p>
+        <div class="hero-cta">
+          <a class="btn" :href="'#level-' + nextLevel">{{ doneCount ? 'Lanjut ke level ' + nextLevel : 'Mulai level 1' }}</a>
+          <a class="btn ghost" href="#target">Apa yang akan kamu kuasai</a>
+        </div>
+        <div class="stats">
+          <span class="chip">{{ doneCount }} / {{ levels.length }} level selesai</span>
+          <span class="chip">{{ xp }} / {{ maxXp }} XP</span>
+          <span class="chip">Peringkat: {{ rank.name }}</span>
+        </div>
+      </div>
+      <div class="hero-pad">
+        <code-pad name="coba-sekarang.js" :initial="heroCode" :compact="true"></code-pad>
+        <p class="hero-note">Ubah teksnya, lalu tekan Jalankan. Pintasan: Ctrl + Enter.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="peta">
+      <div class="sec-h">
+        <h2>Peta level</h2>
+        <p>Urutannya mengikuti pertemuan di kelas. Setiap level punya lima misi: Misi, Lab, Tantangan, Kuis, dan Refleksi.</p>
+      </div>
+      <div class="map">
+        <a v-for="l in levels" :key="l.id" class="lcard" :class="{ done: state.cleared[l.id] }" :data-c="l.cname" :href="'#level-' + l.id" :style="{ '--c': 'var(--' + l.cname + ')' }">
+          <span class="tag px">LV {{ pad(l.id) }}</span>
+          <h3>{{ l.game }}</h3>
+          <p class="sub">{{ l.title }}</p>
+          <div class="bar" :title="levelXp(l) + ' dari ' + LEVEL_MAX + ' XP'"><i :style="{ width: (levelXp(l) / LEVEL_MAX * 100) + '%' }"></i></div>
+          <div class="foot">
+            <span class="state">{{ state.cleared[l.id] ? '✓ Clear' : (levelXp(l) ? 'Sedang berjalan' : 'Belum dimulai') }}</span>
+            <span>{{ levelXp(l) }} / {{ LEVEL_MAX }} XP</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <section class="sec" id="target">
+      <div class="sec-h">
+        <h2>Targetmu di akhir kursus</h2>
+        <p>Tiga kemampuan yang dilatih berulang kali sepanjang level.</p>
+      </div>
+      <div class="tps">
+        <article class="tpc"><span class="px">TP 1</span><h3>Menulis alur keputusan dan perulangan</h3><p>Kamu bisa mengubah masalah sederhana menjadi kode if, else if, switch, for, dan while yang berjalan tanpa error sintaks.</p></article>
+        <article class="tpc"><span class="px">TP 2</span><h3>Merakit program utuh</h3><p>Kamu bisa memakai variabel, tipe data, array, dan fungsi untuk membuat aplikasi mini yang hasilnya sesuai spesifikasi.</p></article>
+        <article class="tpc"><span class="px">TP 3</span><h3>Menemukan dan memperbaiki bug</h3><p>Kamu bisa menganalisis kesalahan logika, lalu merevisinya sampai program efektif dan efisien.</p></article>
+      </div>
+      <p class="note" style="margin-top:14px">Versi web ini mencakup Pertemuan 1 sampai 8 (sintaks, percabangan, perulangan). Level berikutnya menyusul mengikuti modul ajar.</p>
+    </section>
+
+    <section class="sec">
+      <div class="sec-h"><h2>Lembar hasil belajar</h2></div>
+      <div class="card">
+        <p>Semua percobaan program, hasil tantangan, jawaban kuis, dan jurnal refleksimu terkumpul otomatis dalam satu lembar rapi, lengkap dengan kolom nama, kelas, dan nomor absen.</p>
+        <div class="actions" style="margin-top:14px"><a class="btn" href="#lembar">Buka lembar hasil</a></div>
+      </div>
+    </section>
+
+    <section class="sec">
+      <div class="sec-h"><h2>Belajar lewat HP</h2></div>
+      <div class="card">
+        <p>Editor dan tombol Jalankan bekerja di browser HP. Untuk mengetik kode, putar HP ke mode lanskap agar barisnya lebih lebar. Jika program meminta jawaban lewat <code>tanya()</code>, isi kotak Input di bawah editor, satu jawaban per baris.</p>
+        <p class="note">Progres, jawaban kuis, dan jurnal tersimpan di browser perangkat ini saja.</p>
+      </div>
+    </section>
+
+    <div class="foot-note">
+      <span>Mapel Dasar Pemrograman · Fase E · JavaScript</span>
+      <span v-if="!confirmReset"><button class="btn ghost small" @click="confirmReset = true">Hapus progres di perangkat ini</button></span>
+      <span v-else>Yakin hapus semua progres? <button class="btn small" @click="resetAll">Ya, hapus</button> <button class="btn ghost small" @click="confirmReset = false">Batal</button></span>
+    </div>
+  </main>
+
+  <!-- ============ LEVEL ============ -->
+  <main class="wrap" v-else :style="{ '--c': 'var(--' + level.cname + ')' }">
+    <nav class="crumb"><a href="#peta">← Peta level</a></nav>
+    <section class="lv-head" :data-c="level.cname">
+      <span class="tag px">LV {{ pad(level.id) }}</span>
+      <h1>{{ level.game }}</h1>
+      <p class="sub">{{ level.title }}</p>
+      <div class="meta">
+        <span class="chip">Pertemuan {{ level.id }}</span>
+        <span class="chip">{{ level.tp }}</span>
+        <span class="chip">{{ levelXp(level) }} / {{ LEVEL_MAX }} XP</span>
+        <span class="chip" v-if="state.cleared[level.id]">✓ Lencana: {{ level.badge }}</span>
+      </div>
+    </section>
+
+    <div class="tabs" role="tablist" aria-label="Misi level">
+      <button v-for="t in tabs" :key="t.key" role="tab" :aria-selected="tab === t.key" :class="{ on: tab === t.key }" @click="tab = t.key">
+        {{ t.label }} <span class="dot" :class="{ on: tabDone(t.key) }"></span>
+      </button>
+    </div>
+
+    <!-- MISI -->
+    <div class="stack" v-if="tab === 'misi'">
+      <div class="pemantik">
+        <span class="px">PERTANYAAN PEMANTIK</span>
+        <q>{{ level.pemantik }}</q>
+      </div>
+      <div class="card">
+        <h3>Permainan di kelas: {{ level.game }}</h3>
+        <p>{{ level.aktivitas }}</p>
+      </div>
+      <div class="grid3">
+        <article class="concept" v-for="k in level.konsep" :key="k.h">
+          <h4>{{ k.h }}</h4>
+          <p v-html="k.p"></p>
+        </article>
+      </div>
+      <div class="card">
+        <h3>Jeda berkesadaran</h3>
+        <div class="breath">
+          <breath :done="!!state.jeda[level.id]" @finish="finishJeda"></breath>
+        </div>
+        <p class="note" style="margin-top:14px">{{ level.jeda }}</p>
+      </div>
+      <div class="actions"><button class="btn" @click="tab = 'lab'">Ke Lab kode</button></div>
+    </div>
+
+    <!-- LAB -->
+    <div class="stack" v-else-if="tab === 'lab'">
+      <p class="note">Ubah kodenya sesukamu. Tebak dulu apa outputnya sebelum menekan Jalankan, lalu cocokkan.</p>
+      <div class="sub-tabs">
+        <button v-for="(e, i) in level.contoh" :key="e.name" :class="{ on: exIdx === i }" @click="exIdx = i">{{ e.name }}</button>
+      </div>
+      <code-pad :key="level.id + '-' + exIdx" kind="lab" :lid="level.id" :name="level.contoh[exIdx].name" :initial="level.contoh[exIdx].code" :inputs="level.contoh[exIdx].inputs || ''" @ran="onRan"></code-pad>
+      <p class="note" v-if="level.contoh[exIdx].tip">{{ level.contoh[exIdx].tip }}</p>
+      <div class="card" v-if="level.id === 6">
+        <h3>Rakit perulangan for</h3>
+        <p class="note" style="margin-bottom:12px">Atur tiga bagian for, lalu lihat nilai i yang dihasilkan. Coba buat kondisi yang salah sejak awal.</p>
+        <for-builder></for-builder>
+      </div>
+      <div class="actions"><button class="btn" @click="tab = 'tantangan'">Siap untuk tantangan</button></div>
+    </div>
+
+    <!-- TANTANGAN -->
+    <div class="stack" v-else-if="tab === 'tantangan'">
+      <div class="card brief">
+        <h3>{{ level.tantangan.judul }}</h3>
+        <p v-html="level.tantangan.brief"></p>
+        <ul><li v-for="s in level.tantangan.syarat" :key="s">{{ s }}</li></ul>
+        <div class="actions">
+          <button class="btn ghost small" @click="showHint = !showHint">{{ showHint ? 'Tutup petunjuk' : 'Butuh petunjuk?' }}</button>
+        </div>
+        <p class="why" v-if="showHint">{{ level.tantangan.hint }}</p>
+      </div>
+      <code-pad ref="padRef" :key="'ch-' + level.id" kind="tugas" :lid="level.id" :name="level.tantangan.file" :initial="tugasStart(level)" :base="level.tantangan.starter" :inputs="level.tantangan.inputs || ''" @ran="onRan"></code-pad>
+      <div class="actions">
+        <button class="btn" :disabled="checking" @click="checkChallenge">{{ checking ? 'Memeriksa…' : 'Periksa jawabanku' }}</button>
+        <span class="note" v-if="results && !allOk">Belum semua lolos. Baca bagian yang merah, perbaiki, periksa lagi.</span>
+      </div>
+      <div class="checks" v-if="results">
+        <div class="chk" v-for="(r, i) in results" :key="i" :class="r.ok ? 'ok' : 'no'">
+          <span class="ic">{{ r.ok ? '✓' : '✕' }}</span>
+          <div>{{ r.label }}
+            <small v-if="!r.ok && r.got">{{ r.got }}</small>
+          </div>
+        </div>
+      </div>
+      <div class="clear" v-if="state.cleared[level.id]">
+        <span class="px">LEVEL CLEAR</span>
+        <h3>Lencana {{ level.badge }} didapat</h3>
+        <p class="note">+50 XP dari tantangan. Lanjut ke kuis dan refleksi untuk menyelesaikan semua misi level ini.</p>
+        <button class="btn" @click="tab = 'kuis'">Ke kuis</button>
+      </div>
+    </div>
+
+    <!-- KUIS -->
+    <div class="stack" v-else-if="tab === 'kuis'">
+      <article class="qcard" v-for="(q, qi) in level.kuis" :key="qi">
+        <h3>{{ q.q }}</h3>
+        <div class="opts">
+          <button v-for="(o, oi) in q.opts" :key="oi" class="opt" :disabled="answered(qi)" :class="optClass(q, qi, oi)" @click="answer(q, qi, oi)">{{ o }}</button>
+        </div>
+        <p class="why" v-if="answered(qi)"><b>{{ isRight(q, qi) ? 'Tepat. ' : 'Belum tepat. ' }}</b>{{ q.why }}</p>
+      </article>
+      <div class="score">
+        <span class="chip">Skor: {{ quizScore }} / {{ level.kuis.length }} · +10 XP tiap jawaban benar</span>
+        <span class="actions">
+          <button class="btn ghost small" v-if="quizAnswered" @click="resetQuiz">Ulangi kuis</button>
+          <button class="btn" @click="tab = 'refleksi'">Ke refleksi</button>
+        </span>
+      </div>
+    </div>
+
+    <!-- REFLEKSI -->
+    <div class="stack" v-else>
+      <div class="pemantik">
+        <span class="px">JURNAL REFLEKSI</span>
+        <q>{{ level.refleksi }}</q>
+      </div>
+      <textarea class="jurnal" id="jurnal" v-model="state.jurnal[level.id]" placeholder="Tulis dengan jujur, cukup beberapa kalimat. Hanya kamu yang bisa membacanya." aria-label="Jurnal refleksi"></textarea>
+      <div class="score">
+        <span class="note">Tersimpan otomatis di perangkat ini. Tulis minimal 20 karakter untuk mendapat +10 XP.</span>
+        <span class="chip">{{ (state.jurnal[level.id] || '').trim().length }} karakter</span>
+      </div>
+      <div class="actions"><a class="btn ghost" href="#lembar">Lihat lembar hasil belajarku</a></div>
+    </div>
+
+    <div class="lv-nav">
+      <a class="btn ghost" v-if="level.id > 1" :href="'#level-' + (level.id - 1)">← Level {{ level.id - 1 }}</a><span v-else></span>
+      <a class="btn" v-if="level.id < levels.length" :href="'#level-' + (level.id + 1)">Level {{ level.id + 1 }} →</a>
+      <a class="btn" v-else href="#peta">Kembali ke peta</a>
+    </div>
+  </main>
+
+  <div class="toast" v-if="toast" role="status">{{ toast }}</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script>
+/* ---------- Penjalan kode (Web Worker dengan batas waktu, cadangan di thread utama) ---------- */
+async function runner(code, inputs) {
+  const out = [];
+  const q = inputs.slice();
+  const fmt = (a) => {
+    if (typeof a === 'string') return a;
+    if (a === undefined) return 'undefined';
+    if (typeof a === 'function') return String(a);
+    try { if (typeof a === 'object' && a !== null) return JSON.stringify(a); } catch (e) {}
+    return String(a);
+  };
+  const push = (k, t) => { if (out.length < 400) out.push({ k: k, t: t }); };
+  const con = {
+    log: (...a) => push('log', a.map(fmt).join(' ')),
+    info: (...a) => push('log', a.map(fmt).join(' ')),
+    warn: (...a) => push('warn', a.map(fmt).join(' ')),
+    error: (...a) => push('err', a.map(fmt).join(' '))
+  };
+  const tanya = (p) => {
+    if (p !== undefined) push('ask', String(p));
+    const v = q.length ? q.shift() : '';
+    push('ans', v);
+    return v;
+  };
+  let err = null;
+  try {
+    const AF = Object.getPrototypeOf(async function () {}).constructor;
+    const fn = new AF('console', 'tanya', code);
+    await fn(con, tanya);
+  } catch (e) {
+    err = { name: (e && e.name) || 'Error', message: (e && e.message) || String(e) };
+  }
+  return { out: out, err: err };
+}
+
+let workerURL = null;
+try {
+  const src = 'const runner = ' + runner.toString() + ';\nself.onmessage = async (e) => { self.postMessage(await runner(e.data.code, e.data.inputs)); };';
+  workerURL = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+} catch (e) { workerURL = null; }
+
+function execCode(code, inputs, ms) {
+  ms = ms || 2000;
+  return new Promise((resolve) => {
+    const fallback = () => runner(code, inputs).then((r) => resolve(Object.assign({ timedOut: false }, r)));
+    if (!workerURL) return fallback();
+    let w;
+    try { w = new Worker(workerURL); } catch (e) { return fallback(); }
+    let finished = false;
+    const timer = setTimeout(() => {
+      if (finished) return; finished = true; w.terminate();
+      resolve({ out: [], err: null, timedOut: true });
+    }, ms);
+    w.onmessage = (e) => {
+      if (finished) return; finished = true; clearTimeout(timer); w.terminate();
+      resolve(Object.assign({ timedOut: false }, e.data));
+    };
+    w.onerror = () => {
+      if (finished) return; finished = true; clearTimeout(timer); w.terminate(); fallback();
+    };
+    w.postMessage({ code: code, inputs: inputs });
+  });
+}
+
+function parseInputs(text) { return text ? text.split('\n') : []; }
+
+function hintFor(err) {
+  const m = err.message || '';
+  if (/Invalid or unexpected token|Unterminated|string literal/i.test(m)) return 'Ada tanda kutip yang belum ditutup. Periksa pasangan kutip pada baris teks.';
+  if (/missing \) after argument list/.test(m)) return 'Kurung penutup ) hilang, atau ada kutip dan koma yang kurang di dalam console.log(...).';
+  if (/Unexpected identifier/.test(m)) return 'Dua pernyataan menempel tanpa titik koma, atau ada kata yang salah tempat. Pisahkan dengan ; atau baris baru.';
+  if (/Unexpected end of input/.test(m)) return 'Ada kurung ( atau kurung kurawal { yang belum ditutup.';
+  if (/Unexpected token|Unexpected string|Unexpected number/.test(m)) return 'Ada tanda baca yang salah tempat. Lihat bagian sebelum dan sesudah tanda itu.';
+  if (/is not defined/.test(m)) return 'Nama itu belum dibuat atau salah ketik. Huruf besar dan kecil berpengaruh.';
+  if (/is not a function/.test(m)) return 'Nama perintahnya salah. Contoh yang benar: console.log (semua huruf kecil).';
+  if (/Assignment to constant/.test(m)) return 'Nilai const tidak boleh diganti. Pakai let jika nilainya akan berubah.';
+  if (/before initialization/.test(m)) return 'Variabel dipakai sebelum dibuat. Pindahkan deklarasinya ke atas.';
+  if (/Cannot read prop/.test(m)) return 'Kamu membaca isi dari sesuatu yang kosong (undefined atau null). Periksa nilainya dulu.';
+  return 'Baca pesan merahnya pelan-pelan, lalu cari baris yang paling mencurigakan.';
+}
+
+/* ---------- Data level ---------- */
+const LEVELS = [
+{
+  id: 1, cname: 'pink', game: 'Tata Krama Bahasa Robot', title: 'Aturan dasar sintaks', tp: 'TP 1.1', badge: 'Tata Krama',
+  pemantik: 'Apa jadinya surat resmi yang ditulis tanpa satu pun tanda baca?',
+  aktivitas: 'Gurumu menjadi Raja Robot yang sangat disiplin. Kamu menulis perintah di kartu, dan sang robot mogok kerja hanya karena satu titik koma terlupa. Dari sini kamu merasakan bahwa komputer hanya mengerjakan apa yang tertulis persis menurut aturan.',
+  konsep: [
+    { h: 'console.log()', p: 'Perintah untuk menulis sesuatu ke layar. Teks harus diapit tanda kutip, misalnya <code>console.log(\'Halo\');</code>' },
+    { h: 'Titik koma dan kurung', p: 'Akhiri tiap pernyataan dengan <code>;</code>. Setiap <code>(</code> harus punya <code>)</code>, dan setiap kutip harus punya pasangan.' },
+    { h: 'Komentar', p: 'Baris yang diawali <code>//</code> diabaikan robot. Gunakan untuk catatan bagi manusia yang membaca kodemu.' }
+  ],
+  jeda: 'Tanda baca juga mengatur ritme hidup. Kapan kamu perlu jeda sebentar seperti koma, dan kapan berhenti penuh seperti titik, supaya harimu tidak berantakan?',
+  contoh: [
+    { name: 'program1.js', code: "// program1.js - Perintah pertama untuk Raja Robot\nconsole.log('Hormat kami, Yang Mulia Raja Robot!');\nconsole.log('Nama saya: Budi');\nconsole.log('Saya siap menerima perintah.');", tip: 'Coba hapus satu tanda kutip lalu jalankan lagi. Perhatikan pesan merahnya.' },
+    { name: 'robot_a.js (sengaja rusak)', code: "// Robot ini akan mogok. Temukan penyebabnya.\nconsole.log('Selamat pagi, Raja Robot);", tip: 'Dokter Sintaksis akan memberi saran. Perbaiki sendiri, lalu jalankan ulang.' }
+  ],
+  tantangan: {
+    judul: 'Robot Mogok', file: 'robot_mogok.js',
+    brief: 'Tiga baris di bawah ini membuat robot mogok. Perbaiki semuanya supaya empat baris output tercetak.',
+    syarat: ['Tidak ada error sintaks', 'Output tepat empat baris sesuai teks di kode'],
+    hint: 'Cari kutip yang belum ditutup, kurung ) yang hilang, dan dua perintah yang menempel dalam satu baris tanpa titik koma.',
+    starter: "console.log('Hormat kami, Yang Mulia Raja Robot!);\nconsole.log('Saya siap menerima perintah.';\nconsole.log('Satu') console.log('Dua');",
+    rules: [],
+    tests: [{ label: 'Program berjalan dan mencetak 4 baris yang benar', inputs: [], expect: ['Hormat kami, Yang Mulia Raja Robot!', 'Saya siap menerima perintah.', 'Satu', 'Dua'] }]
+  },
+  kuis: [
+    { q: "Apa yang dilakukan console.log('Halo')?", opts: ['Menulis Halo ke layar', 'Menghapus kata Halo', 'Mengirim pesan ke teman', 'Menutup program'], why: 'console.log menampilkan nilai ke layar output.' },
+    { q: "Mengapa console.log('Hai) menimbulkan error?", opts: ['Kutip pembuka tidak punya pasangan', 'console harus ditulis huruf besar', 'Hai harus berupa angka', 'Kurang kurung kurawal'], why: 'Teks harus diawali dan diakhiri tanda kutip yang sama.' },
+    { q: 'Apa efek baris yang diawali dengan //?', opts: ['Diabaikan, hanya catatan', 'Dijalankan dua kali', 'Menyebabkan error', 'Dicetak ke layar'], why: 'Komentar ditulis untuk manusia dan tidak dijalankan.' }
+  ],
+  refleksi: 'Tanda baca apa dalam hidupku yang perlu kujaga agar hariku tidak berantakan? Kapan aku perlu koma, kapan perlu titik?'
+},
+{
+  id: 2, cname: 'sky', game: 'Rapi untuk Sesama', title: 'Indentasi, blok kode, dan variabel', tp: 'TP 1.1', badge: 'Kode Rapi',
+  pemantik: 'Kapan kamu pernah kesulitan membaca tulisan tangan teman, dan apa bedanya dengan membaca kode yang berantakan?',
+  aktivitas: 'Dua kode dengan output sama ditampilkan, satu rapi dan satu berantakan. Kamu menebak output keduanya, lalu menilai mana yang lebih mudah dijelaskan ke orang lain. Kerapian kode adalah bentuk empati kepada pembacanya.',
+  konsep: [
+    { h: 'Indentasi', p: 'Isi di dalam <code>{ }</code> digeser 2 spasi. Mata langsung tahu mana yang bagian dari mana.' },
+    { h: 'const dan let', p: 'Pakai <code>const</code> untuk nilai yang tidak berubah, <code>let</code> untuk nilai yang akan diganti.' },
+    { h: 'Template literal', p: 'Gabungkan teks dan nilai dengan backtick: <code>`Halo, ${nama}`</code>. Lebih rapi daripada menyambung dengan +.' }
+  ],
+  jeda: 'Bagian mana dari hidupmu (kamar, tas, jadwal) yang perlu dirapikan agar orang lain, dan dirimu sendiri, lebih mudah menjalaninya?',
+  contoh: [
+    { name: 'ktp.js', code: "// ktp.js - Mengecek hak membuat KTP\nconst nama = 'Sinta';\nconst umur = 16;\n\nif (umur >= 17) {\n  console.log(nama + ' boleh membuat KTP.');\n} else {\n  console.log(nama + ' belum boleh membuat KTP.');\n}", tip: 'Ganti umur menjadi 17 lalu jalankan lagi.' },
+    { name: 'surat_v2.js', code: "// surat_v2.js - Surat dengan variabel\nconst pengirim = 'Budi';\nconst kelas = 'X RPL 1';\nlet jumlahBaris = 3;\n\nconsole.log(`Hormat saya, ${pengirim} dari kelas ${kelas}.`);\nconsole.log(`Surat ini terdiri dari ${jumlahBaris} baris.`);\njumlahBaris = jumlahBaris + 1;\nconsole.log(`Setelah salam penutup, menjadi ${jumlahBaris} baris.`);\n\n// Hapus tanda // di bawah lalu jalankan untuk melihat error const:\n// pengirim = 'Ani';", tip: 'Backtick ada di sebelah kiri tombol angka 1 pada keyboard laptop.' }
+  ],
+  tantangan: {
+    judul: 'Rapikan Kode Berantakan', file: 'berantakan.js',
+    brief: 'Kode ini jalan, tetapi sulit dibaca. Rapikan tanpa mengubah outputnya.',
+    syarat: ['Output tetap: Rani belum boleh membuat KTP.', 'Satu pernyataan per baris', 'Isi blok digeser 2 spasi', 'Ada komentar pembuka (//)'],
+    hint: 'Pisahkan setiap titik koma ke baris baru, beri 2 spasi sebelum console.log di dalam kurung kurawal, dan tambahkan baris komentar di paling atas.',
+    starter: "const a='Rani';const b=15;\nif(b>=17){console.log(a+' boleh membuat KTP.')}else{\nconsole.log(a+' belum boleh membuat KTP.')}",
+    rules: [
+      { label: 'Satu pernyataan per baris (tidak ada ;const atau ;console)', re: ';[ \\t]*(const|let|console)', not: true },
+      { label: 'Isi blok digeser minimal 2 spasi', re: '\\n {2,}console\\.log' },
+      { label: 'Ada komentar pembuka //', re: '\\/\\/' }
+    ],
+    tests: [{ label: 'Output tetap sama', inputs: [], expect: ['Rani belum boleh membuat KTP.'] }]
+  },
+  kuis: [
+    { q: 'Nilai yang tidak akan berubah sebaiknya disimpan dengan…', opts: ['const', 'let', 'print', 'if'], why: 'const menjaga nilai tetap, sehingga lebih aman dari salah ganti.' },
+    { q: 'Jika umur bernilai 16, apa output console.log(`Umur: ${umur + 1}`)?', opts: ['Umur: 17', 'Umur: 16+1', 'Umur: umur + 1', 'Error'], why: 'Isi ${ } dihitung dulu: 16 + 1 = 17.' },
+    { q: 'Mengapa indentasi penting?', opts: ['Memudahkan orang lain dan dirimu sendiri membaca kode', 'Membuat program berjalan lebih cepat', 'Tanpa indentasi program pasti error', 'Mengubah output program'], why: 'Indentasi tidak memengaruhi hasil, tetapi sangat memengaruhi keterbacaan.' }
+  ],
+  refleksi: 'Bagian mana dari hidupku yang perlu kurapikan agar orang lain, dan diriku sendiri, lebih mudah menjalaninya?'
+},
+{
+  id: 3, cname: 'sun', game: 'Penjaga Gerbang Kerajaan', title: 'Operator pembanding, if, dan if-else', tp: 'TP 1.2', badge: 'Penjaga Gerbang',
+  pemantik: 'Keputusan apa yang kamu ambil tadi pagi dengan pola jika … maka …, jika tidak …?',
+  aktivitas: 'Kamu menjadi penjaga gerbang yang membaca kartu tamu (nama, umur, tiket) dan memutuskan masuk atau ditolak berdasarkan aturan di papan. Aturan itu lalu kamu terjemahkan menjadi kode if dan else.',
+  konsep: [
+    { h: 'Operator pembanding', p: '<code>></code> <code><</code> <code>>=</code> <code><=</code> <code>===</code> <code>!==</code> menghasilkan nilai <code>true</code> atau <code>false</code>.' },
+    { h: 'Operator logika', p: '<code>&&</code> berarti dan, <code>||</code> berarti atau, <code>!</code> berarti bukan. Dipakai untuk menggabungkan beberapa syarat.' },
+    { h: 'if dan else', p: 'Jika kondisi benar, blok if jalan. Jika tidak, blok else yang jalan. Waspada: <code>=</code> mengisi nilai, <code>===</code> membandingkan.' }
+  ],
+  jeda: 'Sebelum bereaksi pada sesuatu yang membuatmu kesal, kamu bisa menjeda tiga detik. Kondisi apa yang sebenarnya kamu periksa, dan tindakan mana yang paling bijak?',
+  contoh: [
+    { name: 'gerbang1.js', code: "// gerbang1.js - Penjaga gerbang sederhana\nconst umur = 14;\nconst membawaTiket = true;\n\nif (umur >= 12 && membawaTiket) {\n  console.log('Silakan masuk ke kerajaan.');\n} else {\n  console.log('Maaf, gerbang tertutup untukmu.');\n}", tip: 'Ubah umur menjadi 10, lalu ubah membawaTiket menjadi false. Prediksi dulu hasilnya.' },
+    { name: 'operator.js', code: "// operator.js - Hasil boolean dari operator\nconsole.log(5 > 3);\nconsole.log(10 >= 10);\nconsole.log(5 === '5');\nconsole.log(5 == '5');\nconsole.log(true && false);\nconsole.log(!(5 > 3));", tip: 'Perhatikan baris 3 dan 4. Karena itu kita selalu memakai === dan menghindari ==.' },
+    { name: 'gerbang2.js (interaktif)', code: "// gerbang2.js - tanya() mengambil jawaban dari kotak Input\nconst nama = tanya('Siapa namamu, pengelana?');\nconst umur = Number(tanya('Berapa umurmu?'));\nconst tiket = tanya('Apakah kamu membawa tiket? (ya/tidak)');\n\nif (umur >= 12 && tiket === 'ya') {\n  console.log('Selamat datang, ' + nama + '!');\n} else {\n  console.log('Maaf ' + nama + ', syarat masuk belum terpenuhi.');\n}", inputs: 'Rina\n14\nya', tip: 'Ubah isi kotak Input (satu jawaban per baris), lalu jalankan lagi.' }
+  ],
+  tantangan: {
+    judul: 'Gerbang Dengan Dua Syarat', file: 'gerbang_saya.js',
+    brief: 'Lengkapi if-else. Tamu boleh masuk jika umur minimal 12 <b>dan</b> membawa tiket (jawaban <code>ya</code>). Cetak <code>Silakan masuk.</code> atau <code>Gerbang tertutup.</code>',
+    syarat: ['Tiga kasus uji harus lolos', 'Memakai if dan else'],
+    hint: 'Gabungkan dua syarat dengan &&: if (umur >= 12 && tiket === \'ya\') { ... } else { ... }',
+    starter: "// Gerbang kerajaan: umur minimal 12 dan harus membawa tiket\nconst umur = Number(tanya('Berapa umurmu?'));\nconst tiket = tanya('Bawa tiket? (ya/tidak)');\n\n// TODO: tulis if-else di sini\n",
+    inputs: '14\nya',
+    rules: [{ label: 'Memakai if (...) dan else', re: 'if\\s*\\([\\s\\S]*else' }],
+    tests: [
+      { label: 'Umur 14, bawa tiket → Silakan masuk.', inputs: ['14', 'ya'], expect: ['Silakan masuk.'] },
+      { label: 'Umur 10, bawa tiket → Gerbang tertutup.', inputs: ['10', 'ya'], expect: ['Gerbang tertutup.'] },
+      { label: 'Umur 15, tanpa tiket → Gerbang tertutup.', inputs: ['15', 'tidak'], expect: ['Gerbang tertutup.'] }
+    ]
+  },
+  kuis: [
+    { q: 'Apa hasil dari 10 >= 10?', opts: ['true', 'false', '10', 'Error'], why: 'Operator >= bernilai benar jika kedua sisi sama atau kiri lebih besar.' },
+    { q: 'Apa beda = dan === ?', opts: ['= mengisi nilai, === membandingkan', 'Keduanya sama', '= membandingkan, === mengisi nilai', '=== hanya untuk teks'], why: 'Menulis if (umur = 12) mengisi nilai, bukan membandingkan. Gunakan ===.' },
+    { q: 'Apa hasil dari true && false?', opts: ['false', 'true', 'undefined', 'Error'], why: '&& hanya benar jika kedua sisinya benar.' }
+  ],
+  refleksi: 'Jika aku menjeda tiga detik sebelum bereaksi pada hal yang membuatku kesal, kondisi apa yang kuperiksa dan tindakan mana yang paling bijak?'
+},
+{
+  id: 4, cname: 'mint', game: 'Labirin Keputusan', title: 'else if dan switch', tp: 'TP 1.2', badge: 'Navigator Labirin',
+  pemantik: 'Kapan lebih cocok memakai if bertingkat, dan kapan lebih cocok memakai daftar pilihan bernomor?',
+  aktivitas: 'Empat sudut kelas menjadi stasiun. Kamu berjalan mengikuti aturan bertingkat: jika ke stasiun A, jika tidak dan … ke stasiun B, selain itu ke stasiun C. Aturan itu lalu kamu ubah menjadi else if dan dibandingkan dengan switch.',
+  konsep: [
+    { h: 'else if', p: 'Memeriksa kondisi satu per satu dari atas. <b>Kondisi pertama yang benar</b> langsung dipilih, sisanya dilewati.' },
+    { h: 'switch', p: 'Memilih berdasarkan satu nilai: <code>case 1:</code>, <code>case 2:</code>, dan <code>default:</code> untuk nilai yang tidak dikenal.' },
+    { h: 'break', p: 'Menghentikan case supaya tidak jatuh ke case berikutnya (fall-through). Hapus break lalu lihat apa yang terjadi.' }
+  ],
+  jeda: 'Dalam hidup, urutan apa yang kamu periksa lebih dulu sebelum bereaksi? Apa tindakan bijak yang menjadi default-mu saat tidak ada pilihan yang pas?',
+  contoh: [
+    { name: 'predikat.js', code: "// predikat.js - Konversi nilai menjadi predikat\nconst nilai = 83;\nlet predikat;\n\nif (nilai >= 90) {\n  predikat = 'A';\n} else if (nilai >= 80) {\n  predikat = 'B';\n} else if (nilai >= 70) {\n  predikat = 'C';\n} else {\n  predikat = 'D';\n}\n\nconsole.log('Nilai ' + nilai + ' mendapat predikat ' + predikat);", tip: 'Coba nilai 95, 85, 75, dan 50.' },
+    { name: 'predikat_salah.js', code: "// predikat_salah.js - Urutan kondisi terbalik\nconst nilai = 83;\nlet predikat;\n\nif (nilai >= 70) {\n  predikat = 'C';\n} else if (nilai >= 80) {\n  predikat = 'B';\n} else if (nilai >= 90) {\n  predikat = 'A';\n} else {\n  predikat = 'D';\n}\n\nconsole.log('Nilai ' + nilai + ' mendapat predikat ' + predikat);", tip: 'Tidak ada error, tetapi hasilnya salah. Ini contoh pertama logic error. Perbaiki urutannya.' },
+    { name: 'menu.js (switch)', code: "// menu.js - Menu kantin dengan switch\nconst pilihan = 2;\n\nswitch (pilihan) {\n  case 1:\n    console.log('Nasi Goreng - Rp12.000');\n    break;\n  case 2:\n    console.log('Mie Ayam - Rp10.000');\n    break;\n  case 3:\n    console.log('Es Teh - Rp3.000');\n    break;\n  default:\n    console.log('Menu tidak tersedia.');\n}", tip: 'Hapus baris break pada case 2 lalu jalankan: output berubah jadi dua baris.' }
+  ],
+  tantangan: {
+    judul: 'Konverter Predikat', file: 'predikat_saya.js',
+    brief: 'Baca nilai dari kotak Input, lalu cetak <b>satu huruf</b>: A (90 ke atas), B (80 sampai 89), C (70 sampai 79), D (di bawah 70).',
+    syarat: ['Lima kasus uji lolos', 'Memakai else if'],
+    hint: 'Mulai dari syarat paling besar: if (nilai >= 90) lalu else if (nilai >= 80), dan seterusnya. Urutannya menentukan hasil.',
+    starter: "const nilai = Number(tanya('Berapa nilaimu?'));\n\n// TODO: cetak A, B, C, atau D memakai if, else if, dan else\n",
+    inputs: '85',
+    rules: [{ label: 'Memakai else if', re: 'else\\s+if' }],
+    tests: [
+      { label: '95 → A', inputs: ['95'], expect: ['A'] },
+      { label: '90 → A', inputs: ['90'], expect: ['A'] },
+      { label: '85 → B', inputs: ['85'], expect: ['B'] },
+      { label: '72 → C', inputs: ['72'], expect: ['C'] },
+      { label: '40 → D', inputs: ['40'], expect: ['D'] }
+    ]
+  },
+  kuis: [
+    { q: 'Pada predikat.js, apa output jika nilai = 90?', opts: ['A', 'B', 'C', 'D'], why: '90 >= 90 benar pada kondisi pertama, jadi langsung A.' },
+    { q: 'Apa fungsi break di dalam switch?', opts: ['Menghentikan case supaya tidak lanjut ke case berikutnya', 'Menghentikan seluruh program', 'Mengulang case', 'Menghapus default'], why: 'Tanpa break, eksekusi jatuh ke case berikutnya (fall-through).' },
+    { q: 'Mengapa urutan kondisi pada else if penting?', opts: ['Kondisi pertama yang benar langsung dipilih', 'Agar kode terlihat cantik', 'else if dibaca dari bawah ke atas', 'Urutan tidak penting'], why: 'Jika kondisi longgar ditaruh di atas, kondisi di bawahnya tidak pernah dicapai.' }
+  ],
+  refleksi: 'Dalam hidup, urutan apa yang kuperiksa lebih dulu sebelum bereaksi? Apa tindakan "default" yang bijak saat tidak ada pilihan yang pas?'
+},
+{
+  id: 5, cname: 'violet', game: 'Buku Petualangan Pilih Sendiri', title: 'Proyek gim teks', tp: 'TP 1.2', badge: 'Penulis Cerita',
+  pemantik: 'Jika ceritamu bisa berakhir lima cara berbeda, bagaimana memastikan setiap jalur sudah kamu uji?',
+  aktivitas: 'Kamu merancang pohon keputusan di kertas, lalu mengubahnya menjadi gim teks dengan if, else if, else, dan switch. Di akhir, teman memainkan gimmu dan memberi dua bintang dan satu harapan.',
+  konsep: [
+    { h: 'Pohon keputusan', p: 'Gambar semua persimpangan dan akhir cerita sebelum menulis kode. Setiap cabang di gambar menjadi satu blok kode.' },
+    { h: 'Variabel status', p: 'Simpan keadaan karakter di variabel seperti <code>nyawa</code> dan <code>punyaPedang</code>, lalu periksa di persimpangan berikutnya.' },
+    { h: 'Tabel uji', p: 'Catat tiap kombinasi jawaban dan hasil akhir yang diharapkan. Jalankan semuanya agar tidak ada jalur yang lolos tanpa dicek.' }
+  ],
+  jeda: 'Keputusan kecil apa minggu ini yang kamu ambil dengan sadar, dan bagaimana dampaknya pada hari-harimu?',
+  contoh: [
+    { name: 'petualangan.js', code: "// petualangan.js - Hutan Kode\nconst nama = tanya('Siapa nama pahlawanmu?');\nlet nyawa = 3;\nlet punyaPedang = false;\n\nconsole.log(`Halo, ${nama}! Kamu memasuki hutan. Nyawa: ${nyawa}`);\nconsole.log('Di persimpangan: 1) Gua gelap  2) Jembatan tua  3) Pondok penyihir');\nconst jalur = tanya('Pilih jalur (1/2/3):');\n\nswitch (jalur) {\n  case '1':\n    console.log('Kamu menemukan pedang di dalam gua!');\n    punyaPedang = true;\n    break;\n  case '2':\n    console.log('Jembatan roboh! Nyawa berkurang 1.');\n    nyawa = nyawa - 1;\n    break;\n  case '3':\n    console.log('Penyihir memberimu ramuan. Nyawa bertambah 1!');\n    nyawa = nyawa + 1;\n    break;\n  default:\n    console.log('Kamu bingung dan hanya berdiri di tempat...');\n}\n\nconsole.log('Seekor naga muncul! Nyawa kamu: ' + nyawa);\nconst aksi = tanya('Apa yang kamu lakukan? (lari/serang)');\n\nif (aksi === 'serang' && punyaPedang) {\n  console.log('Kamu menebas naga. KAMU MENANG!');\n} else if (aksi === 'serang') {\n  console.log('Kamu menyerang dengan tangan kosong... naga tertawa.');\n  nyawa = nyawa - 2;\n} else if (aksi === 'lari') {\n  console.log('Kamu berhasil kabur.');\n} else {\n  console.log('Kamu ragu terlalu lama. Naga menerkammu...');\n  nyawa = 0;\n}\n\nif (nyawa > 0) {\n  console.log('TAMAT. Sisa nyawa: ' + nyawa);\n} else {\n  console.log('GAME OVER');\n}", inputs: 'Ayu\n1\nserang', tip: 'Coba kombinasi 2 + serang, 3 + lari, dan 9 + diam. Setiap jalur punya akhir berbeda.' }
+  ],
+  tantangan: {
+    judul: 'Selesaikan Gim Petualanganmu', file: 'gim_saya.js',
+    brief: 'Starter gim ini baru memakai if-else. Naikkan levelnya: ubah pilihan jalur menjadi <code>switch</code>, dan tambahkan akhir cerita baru dengan <code>else if</code>. Ceritanya boleh kamu ganti sesukamu.',
+    syarat: ['Ada switch dengan minimal dua case dan satu default', 'Ada minimal satu else if', 'Tiga jalur uji berjalan tanpa error dan tercetak minimal 4 baris'],
+    hint: "Ganti blok if (jalur === '1') dengan switch (jalur) { case '1': ... break; case '2': ... break; default: ... }. Lalu pada aksi, tambahkan else if (aksi === 'lari') { ... }.",
+    starter: "// Buku Petualangan: Hutan Kode\nconst nama = tanya('Siapa nama pahlawanmu?');\nlet nyawa = 3;\nlet punyaPedang = false;\n\nconsole.log('Halo, ' + nama + '! Kamu memasuki hutan.');\nconsole.log('Di persimpangan: 1) Gua  2) Jembatan  3) Pondok penyihir');\nconst jalur = tanya('Pilih jalur (1/2/3):');\n\n// TODO 1: ubah menjadi switch dengan case '1', '2', '3', dan default\nif (jalur === '1') {\n  console.log('Kamu menemukan pedang!');\n  punyaPedang = true;\n} else {\n  console.log('Kamu terus berjalan...');\n}\n\nconsole.log('Seekor naga muncul!');\nconst aksi = tanya('lari atau serang?');\n\n// TODO 2: tambahkan else if untuk aksi lain\nif (aksi === 'serang' && punyaPedang) {\n  console.log('Naga tumbang. KAMU MENANG!');\n} else {\n  console.log('Kamu kabur.');\n}\n",
+    inputs: 'Ayu\n1\nserang',
+    rules: [
+      { label: 'Ada switch (...)', re: 'switch\\s*\\(' },
+      { label: 'Ada minimal dua case', re: 'case[\\s\\S]*case' },
+      { label: 'Ada default:', re: 'default\\s*:' },
+      { label: 'Ada else if', re: 'else\\s+if' }
+    ],
+    tests: [
+      { label: 'Jalur 1 + serang berjalan tanpa error', inputs: ['Ayu', '1', 'serang'], min: 4 },
+      { label: 'Jalur 3 + lari berjalan tanpa error', inputs: ['Ayu', '3', 'lari'], min: 4 },
+      { label: 'Jalur 9 + diam berjalan tanpa error', inputs: ['Ayu', '9', 'diam'], min: 4 }
+    ]
+  },
+  kuis: [
+    { q: 'Apa gunanya pohon keputusan sebelum menulis kode?', opts: ['Merancang semua jalur cerita lebih dulu', 'Mempercepat internet', 'Menghapus bug otomatis', 'Mengganti kebutuhan switch'], why: 'Dengan gambar jalur, kamu tahu berapa banyak cabang yang harus kamu tulis dan uji.' },
+    { q: 'Kapan switch lebih cocok daripada else if?', opts: ['Memilih berdasarkan satu nilai pasti, seperti menu 1, 2, 3', 'Membandingkan rentang nilai seperti 80 sampai 89', 'Selalu lebih cocok', 'Tidak pernah cocok'], why: 'Rentang nilai butuh perbandingan, jadi else if lebih tepat.' },
+    { q: 'Apa gunanya default pada switch?', opts: ['Menangani pilihan yang tidak dikenal', 'Mengulang switch', 'Mengakhiri program', 'Membuat variabel baru'], why: 'default berjalan ketika tidak ada case yang cocok.' }
+  ],
+  refleksi: 'Keputusan kecil apa minggu ini yang kuambil dengan sadar, dan bagaimana dampaknya pada hari-hariku?'
+},
+{
+  id: 6, cname: 'orange', game: 'Pabrik Cokelat Otomatis', title: 'Perulangan for', tp: 'TP 1.3', badge: 'Juragan Cokelat',
+  pemantik: 'Berapa lama kamu menulis namamu lima kali dengan menyalin baris, dan berapa lama jika seratus kali?',
+  aktivitas: 'Tiga temanmu memegang kartu peran Inisialisasi, Kondisi, dan Langkah, lalu menjalankan mesin cokelat: mulai dari 1, cek apakah masih sampai 5, cetak satu cokelat, naikkan hitungan, ulangi. Kamu melihat langsung tiga bagian for.',
+  konsep: [
+    { h: 'Tiga bagian for', p: '<code>for (let i = 1; i <= 5; i++)</code>: mulai dari 1, lanjut selama i kurang dari atau sama dengan 5, naikkan i setiap putaran.' },
+    { h: 'Variabel penampung', p: 'Untuk menjumlahkan, buat <code>let total = 0;</code> sebelum for, lalu tambahkan <code>total = total + i;</code> di dalamnya.' },
+    { h: 'Tabel jejak', p: 'Tulis nilai i, hasil pemeriksaan kondisi, dan output pada tiap putaran. Cara terbaik memahami perulangan tanpa menebak.' }
+  ],
+  jeda: 'Kebiasaan kecil apa yang kamu ulang setiap hari, misalnya merapikan tempat tidur atau belajar, dan bagaimana ia membentuk dirimu?',
+  contoh: [
+    { name: 'cokelat1.js', code: "// cokelat1.js - Mesin cetak cokelat sederhana\nfor (let i = 1; i <= 5; i++) {\n  console.log('Cokelat ke-' + i + ' selesai dicetak');\n}", tip: 'Ubah 5 menjadi 100 dan lihat betapa cepatnya komputer bekerja.' },
+    { name: 'jumlah.js', code: "// jumlah.js - Akumulasi dengan variabel penampung\nlet total = 0;\nfor (let i = 1; i <= 10; i++) {\n  total = total + i;\n}\nconsole.log('Jumlah 1 sampai 10 = ' + total);", tip: 'Apa yang terjadi jika baris let total = 0 diganti dengan let total;?' },
+    { name: 'bintang.js', code: "// bintang.js - Pola segitiga\nfor (let baris = 1; baris <= 5; baris++) {\n  console.log('*'.repeat(baris));\n}", tip: 'Buat segitiga terbalik dengan menghitung mundur.' }
+  ],
+  tantangan: {
+    judul: 'Cetak Cokelat Sebanyak Pesanan', file: 'pesanan.js',
+    brief: 'Baca jumlah pesanan n dari kotak Input, lalu cetak <code>Cokelat ke-1 selesai dicetak</code> sampai <code>Cokelat ke-n selesai dicetak</code>, satu per baris.',
+    syarat: ['Tiga kasus uji lolos (n = 1, 3, 5)', 'Memakai for'],
+    hint: "Pakai batas dari input: for (let i = 1; i <= n; i++) { console.log('Cokelat ke-' + i + ' selesai dicetak'); }",
+    starter: "const n = Number(tanya('Berapa cokelat yang dipesan?'));\n\n// TODO: pakai for untuk mencetak dari ke-1 sampai ke-n\n",
+    inputs: '3',
+    rules: [{ label: 'Memakai for (...)', re: 'for\\s*\\(' }],
+    tests: [
+      { label: 'n = 1', inputs: ['1'], expect: ['Cokelat ke-1 selesai dicetak'] },
+      { label: 'n = 3', inputs: ['3'], expect: ['Cokelat ke-1 selesai dicetak', 'Cokelat ke-2 selesai dicetak', 'Cokelat ke-3 selesai dicetak'] },
+      { label: 'n = 5', inputs: ['5'], expect: [1, 2, 3, 4, 5].map(function (i) { return 'Cokelat ke-' + i + ' selesai dicetak'; }) }
+    ]
+  },
+  kuis: [
+    { q: 'Berapa kali badan perulangan for (let i = 2; i < 6; i++) berjalan?', opts: ['4 kali', '3 kali', '5 kali', '6 kali'], why: 'Nilai i yang lolos kondisi: 2, 3, 4, 5. Total empat kali.' },
+    { q: 'Apa output for (let i = 3; i >= 1; i--) console.log(i)?', opts: ['3, 2, 1', '1, 2, 3', '3, 2, 1, 0', 'Error'], why: 'i dimulai dari 3, dikurangi 1 tiap putaran, berhenti saat i < 1.' },
+    { q: 'Mengapa variabel total diberi nilai awal 0 sebelum for?', opts: ['Penampung harus punya nilai awal agar bisa dijumlahkan', 'Agar for berjalan lebih cepat', 'Diwajibkan oleh Node.js', 'Supaya tidak terjadi perulangan'], why: 'Tanpa nilai awal, total bernilai undefined dan hasilnya NaN.' }
+  ],
+  refleksi: 'Kebiasaan kecil apa yang kuulang setiap hari, dan bagaimana ia membentuk diriku?'
+},
+{
+  id: 7, cname: 'pink', game: 'Gudang dan Gerbang PIN', title: 'Perulangan while dan do-while', tp: 'TP 1.3', badge: 'Penunggu Gerbang',
+  pemantik: 'Bagaimana menulis aturan "ulangi sampai tujuan tercapai" jika kamu tidak tahu berapa kali harus mengulang?',
+  aktivitas: 'Gurumu menjadi kepala pabrik yang memerintahkan "selama gudang masih berisi, kirim satu kotak" (while). Lalu satpam bertanya PIN dulu, baru memeriksa (do-while). Dari dua simulasi ini kamu merasakan beda kondisi di awal dan di akhir.',
+  konsep: [
+    { h: 'while', p: 'Kondisi diperiksa <b>di awal</b>. Jika sudah salah sejak awal, badan perulangan berjalan nol kali.' },
+    { h: 'do-while', p: 'Badan dijalankan <b>dulu</b>, kondisi diperiksa di akhir. Cocok untuk meminta input yang harus ditanyakan minimal sekali.' },
+    { h: 'Infinite loop', p: 'Jika variabel di kondisi tidak pernah berubah, perulangan tidak akan berhenti. Di sini program dihentikan otomatis setelah 2 detik.' }
+  ],
+  jeda: 'Aktivitas rutin apa yang tadinya terasa membosankan tetapi kini terasa bermakna? Apa yang membuatnya berubah?',
+  contoh: [
+    { name: 'gudang.js', code: "// gudang.js - while: kondisi diperiksa di awal\nlet stok = 5;\n\nwhile (stok > 0) {\n  stok--;\n  console.log('Satu kotak dikirim. Sisa stok: ' + stok);\n}\n\nconsole.log('Gudang kosong.');", tip: 'Ubah stok awal menjadi 0. Apa yang tercetak?' },
+    { name: 'pin.js (do-while)', code: "// pin.js - do-while dengan batas percobaan\nlet pin;\nlet percobaan = 0;\n\ndo {\n  pin = tanya('Masukkan PIN pabrik:');\n  percobaan++;\n} while (pin !== '1234' && percobaan < 3);\n\nif (pin === '1234') {\n  console.log('PIN benar. Pabrik dibuka!');\n} else {\n  console.log('Tiga kali salah. Akses dikunci.');\n}", inputs: '0000\n1111\n1234', tip: 'Ubah isi Input menjadi tiga PIN salah untuk melihat akses terkunci.' },
+    { name: 'uji_nyali.js (infinite loop)', code: "// Program ini lupa mengurangi stok. Aman dijalankan di sini.\nlet stok = 3;\n\nwhile (stok > 0) {\n  console.log('Mengirim kotak...');\n  // stok--;   <- hapus // untuk memperbaiki\n}\n\nconsole.log('Selesai.');", tip: 'Program akan dihentikan otomatis. Lalu perbaiki dengan menghapus // pada baris stok--.' }
+  ],
+  tantangan: {
+    judul: 'Menabung Sampai Target', file: 'tabungan.js',
+    brief: 'Kamu menabung Rp15.000 setiap hari. Baca target dari kotak Input, lalu hitung berapa hari sampai tabungan mencapai atau melewati target. Cetak <code>Butuh X hari</code>.',
+    syarat: ['Tiga kasus uji lolos', 'Memakai while'],
+    hint: 'Selama tabungan < target: tambah 15000 dan tambah hari. Jumlah pengulangan belum diketahui, itu sebabnya while lebih cocok daripada for.',
+    starter: "const target = Number(tanya('Berapa target tabungan?'));\nlet tabungan = 0;\nlet hari = 0;\n\n// TODO: tiap hari menabung 15000 sampai mencapai target (pakai while)\n\nconsole.log('Butuh ' + hari + ' hari');\n",
+    inputs: '100000',
+    rules: [{ label: 'Memakai while (...)', re: 'while\\s*\\(' }],
+    tests: [
+      { label: 'Target 100000 → Butuh 7 hari', inputs: ['100000'], expect: ['Butuh 7 hari'] },
+      { label: 'Target 45000 → Butuh 3 hari', inputs: ['45000'], expect: ['Butuh 3 hari'] },
+      { label: 'Target 15001 → Butuh 2 hari', inputs: ['15001'], expect: ['Butuh 2 hari'] }
+    ]
+  },
+  kuis: [
+    { q: 'Berapa kali do-while berjalan jika kondisinya sudah salah sejak awal?', opts: ['Satu kali', 'Nol kali', 'Dua kali', 'Tak terhingga'], why: 'do-while menjalankan badan dulu, baru memeriksa kondisi.' },
+    { q: 'Mengapa while (true) tanpa jalan keluar berbahaya?', opts: ['Program tidak pernah berhenti (infinite loop)', 'Menimbulkan error sintaks', 'Menghapus file', 'Tidak boleh ditulis'], why: 'Kondisi selalu benar, sehingga perulangan tidak punya cara berhenti.' },
+    { q: 'Masalah "minta PIN sampai benar" paling cocok memakai…', opts: ['do-while atau while', 'for', 'switch', 'const'], why: 'Jumlah percobaan tidak diketahui di awal, jadi bukan for.' }
+  ],
+  refleksi: 'Aktivitas rutin apa yang tadinya membosankan tetapi kini kurasakan bermakna? Apa yang membuatnya berubah?'
+},
+{
+  id: 8, cname: 'mint', game: 'Tantangan Pabrik Cokelat', title: 'Perulangan bersarang dan persiapan PTS', tp: 'TP 1.3', badge: 'Pabrik Emas',
+  pemantik: 'Bagaimana pabrik menghitung total produksi seminggu tanpa menjumlahkan satu per satu dengan tangan?',
+  aktivitas: 'Rapat Direksi Pabrik: empat masalah produksi disajikan, dan kamu memilih struktur yang cocok (for, while, atau if). Perulangan bersarang dijelaskan lewat rak: baris dan kolom.',
+  konsep: [
+    { h: 'Perulangan bersarang', p: 'for di dalam for. Perulangan luar menentukan baris, perulangan dalam menentukan kolom. Badan dalam berjalan baris × kolom kali.' },
+    { h: 'Sisa bagi %', p: '<code>10 % 3</code> bernilai 1. Jika <code>i % 3 === 0</code>, berarti i habis dibagi 3.' },
+    { h: 'Gabungkan konsep', p: 'Masalah nyata biasanya memakai perulangan <b>dan</b> percabangan sekaligus. Urutan pemeriksaan kondisi tetap menentukan hasil.' }
+  ],
+  jeda: 'Setelah delapan pertemuan, kebiasaan belajar apa yang paling menolongmu, dan bagaimana kamu akan mengulangnya agar menjadi karakter?',
+  contoh: [
+    { name: 'pola.js', code: "// pola.js - Perulangan di dalam perulangan\nfor (let i = 1; i <= 5; i++) {\n  let baris = '';\n  for (let j = 1; j <= i; j++) {\n    baris = baris + j + ' ';\n  }\n  console.log(baris.trim());\n}", tip: 'Berapa kali badan perulangan dalam berjalan seluruhnya? Hitung dulu, lalu cek.' },
+    { name: 'laporan.js', code: "// laporan.js - Produksi naik 10 cokelat tiap hari\nlet produksi = 100;\nlet total = 0;\n\nfor (let hari = 1; hari <= 7; hari++) {\n  console.log(`Hari ke-${hari}: ${produksi} cokelat`);\n  total = total + produksi;\n  produksi = produksi + 10;\n}\n\nconsole.log('Total produksi: ' + total);", tip: 'Prediksi total produksi sebelum menjalankan.' },
+    { name: 'tabel.js', code: "// tabel.js - Tabel perkalian bersarang\nfor (let a = 1; a <= 5; a++) {\n  let baris = '';\n  for (let b = 1; b <= 5; b++) {\n    baris = baris + String(a * b).padStart(4);\n  }\n  console.log(baris);\n}", tip: 'Ubah 5 menjadi 9 untuk membuat tabel perkalian 1 sampai 9.' }
+  ],
+  tantangan: {
+    judul: 'Level Gold: Cokelat-Karamel', file: 'gold.js',
+    brief: 'Untuk i dari 1 sampai 15, cetak <code>Cokelat-Karamel</code> jika i habis dibagi 3 dan 5, <code>Cokelat</code> jika habis dibagi 3, <code>Karamel</code> jika habis dibagi 5, selain itu cetak angkanya.',
+    syarat: ['Output tepat 15 baris', 'Memakai for dan operator %'],
+    hint: 'Periksa kelipatan 15 lebih dulu, karena kelipatan 15 juga kelipatan 3 dan 5. Gunakan if (i % 15 === 0) ... else if (i % 3 === 0) ... else if (i % 5 === 0) ... else ...',
+    starter: "// Cetak 15 baris sesuai aturan pabrik\nfor (let i = 1; i <= 15; i++) {\n  // TODO: isi dengan if, else if, dan else\n  console.log(i);\n}\n",
+    rules: [
+      { label: 'Memakai for (...)', re: 'for\\s*\\(' },
+      { label: 'Memakai operator %', re: '%' }
+    ],
+    tests: [{ label: 'Keluaran 15 baris sesuai aturan', inputs: [], expect: ['1', '2', 'Cokelat', '4', 'Karamel', 'Cokelat', '7', '8', 'Cokelat', 'Karamel', '11', 'Cokelat', '13', '14', 'Cokelat-Karamel'] }]
+  },
+  kuis: [
+    { q: 'for (let i = 1; i <= 3; i++) { for (let j = 1; j <= 4; j++) { ... } } menjalankan badan dalam berapa kali?', opts: ['12 kali', '7 kali', '3 kali', '4 kali'], why: '3 putaran luar × 4 putaran dalam = 12.' },
+    { q: 'Mengapa i % 15 === 0 diperiksa paling dulu pada tantangan Gold?', opts: ['Kelipatan 15 juga kelipatan 3 dan 5, sehingga cabang lain akan menangkapnya lebih dulu', 'Agar program lebih cepat', 'Aturan wajib JavaScript', 'Karena 15 angka keramat'], why: 'else if memilih kondisi pertama yang benar, jadi kasus paling khusus harus di atas.' },
+    { q: 'Berapa hasil 15 % 4?', opts: ['3', '0', '4', '1'], why: '15 dibagi 4 = 3 sisa 3.' }
+  ],
+  refleksi: 'Setelah delapan pertemuan, kebiasaan belajar apa yang paling menolongku, dan bagaimana aku akan mengulangnya agar menjadi karakter?'
+}
+];
+
+/* Acak pilihan kuis secara deterministik (jawaban benar ditulis pertama di data) */
+function seededOrder(n, seed) {
+  const idx = Array.from({ length: n }, (_, i) => i);
+  let s = seed * 9301 + 49297;
+  for (let i = n - 1; i > 0; i--) {
+    s = (s * 9301 + 49297) % 233280;
+    const j = Math.floor((s / 233280) * (i + 1));
+    const t = idx[i]; idx[i] = idx[j]; idx[j] = t;
+  }
+  return idx;
+}
+LEVELS.forEach(function (l) {
+  l.kuis = l.kuis.map(function (q, qi) {
+    const order = seededOrder(q.opts.length, l.id * 17 + qi * 5 + 3);
+    return { q: q.q, why: q.why, opts: order.map(function (i) { return q.opts[i]; }), a: order.indexOf(0) };
+  });
+});
+
+/* ---------- Komponen ---------- */
+const { createApp, ref, reactive, computed, watch, onBeforeUnmount, nextTick } = Vue;
+
+const CodePad = {
+  props: { initial: { type: String, default: '' }, base: { type: String, default: '' }, name: { type: String, default: 'main.js' }, inputs: { type: String, default: '' }, compact: Boolean, kind: { type: String, default: '' }, lid: { type: Number, default: 0 } },
+  emits: ['ran'],
+  setup(props, ctx) {
+    const code = ref(props.initial);
+    const inputText = ref(props.inputs);
+    const res = ref(null);
+    const running = ref(false);
+    const gut = ref(null);
+    let free = false;
+    const lines = computed(() => code.value.split('\n').length);
+    const gutterText = computed(() => Array.from({ length: lines.value }, (_, i) => i + 1).join('\n'));
+    const h = computed(() => Math.min(Math.max(lines.value, props.compact ? 4 : 5), 18) * 20.8 + 24);
+    const usesInput = computed(() => /tanya\s*\(/.test(code.value));
+    const hint = computed(() => res.value && res.value.err ? hintFor(res.value.err) : '');
+    async function run() {
+      running.value = true;
+      res.value = null;
+      const snapshot = code.value;
+      res.value = await execCode(snapshot, parseInputs(inputText.value));
+      running.value = false;
+      ctx.emit('ran', { kind: props.kind, lid: props.lid, name: props.name, code: snapshot, res: res.value });
+    }
+    function reset() { code.value = props.base || props.initial; res.value = null; }
+    function onKey(e) {
+      if (e.key === 'Escape') { free = true; return; }
+      if (e.key === 'Tab' && !e.shiftKey && !free) {
+        e.preventDefault();
+        const ta = e.target, s = ta.selectionStart, en = ta.selectionEnd;
+        code.value = code.value.slice(0, s) + '  ' + code.value.slice(en);
+        nextTick(() => { ta.selectionStart = ta.selectionEnd = s + 2; });
+      } else { free = false; }
+    }
+    function sync(e) { if (gut.value) gut.value.scrollTop = e.target.scrollTop; }
+    ctx.expose({ code, run });
+    return { code, inputText, res, running, gut, gutterText, h, usesInput, hint, run, reset, onKey, sync };
+  },
+  template: `
+  <div class="pad">
+    <div class="pad-bar">
+      <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="fname">{{ name }}</span>
+      <button class="btn ghost small" @click="reset" title="Kembalikan kode awal" style="color:var(--code-fg);border-color:var(--code-line)">Reset</button>
+      <button class="btn small" :disabled="running" @click="run">{{ running ? 'Berjalan…' : '▶ Jalankan' }}</button>
+    </div>
+    <div class="editor">
+      <pre class="gutter" ref="gut" aria-hidden="true" :style="{ height: h + 'px' }">{{ gutterText }}</pre>
+      <textarea class="code" v-model="code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off"
+        :style="{ height: h + 'px' }" aria-label="Editor kode JavaScript"
+        @scroll="sync" @keydown="onKey" @keydown.ctrl.enter.prevent="run" @keydown.meta.enter.prevent="run"></textarea>
+    </div>
+    <div class="inp" v-if="usesInput">
+      <label>Input untuk tanya(), satu jawaban per baris</label>
+      <textarea v-model="inputText" rows="2" spellcheck="false" aria-label="Jawaban untuk tanya()"></textarea>
+    </div>
+    <div class="term" aria-live="polite">
+      <div v-if="!res" class="idle">Output muncul di sini setelah kamu menekan Jalankan.</div>
+      <template v-else>
+        <div v-for="(o, i) in res.out" :key="i" :class="'l-' + o.k">{{ o.k === 'ask' ? '? ' + o.t : (o.k === 'ans' ? '> ' + o.t : o.t) }}</div>
+        <div v-if="!res.out.length && !res.err && !res.timedOut" class="idle">Program selesai tanpa mencetak apa pun.</div>
+        <div class="errbox" v-if="res.err"><b>{{ res.err.name }}</b>: {{ res.err.message }}<p><b style="font-family:var(--body);color:var(--code-fg)">Saran Dokter Sintaksis:</b> {{ hint }}</p></div>
+        <div class="errbox" v-if="res.timedOut"><b>Waktu habis</b><p>Program tidak berhenti dalam 2 detik. Curigai infinite loop: periksa apakah variabel di kondisi perulangan benar-benar berubah.</p></div>
+      </template>
+    </div>
+    <p class="pad-hint">Tab = 2 spasi (Esc lalu Tab untuk keluar dari editor). Ctrl + Enter = Jalankan.</p>
+  </div>`
+};
+
+const ForBuilder = {
+  setup() {
+    const s = ref(1), l = ref(5), st = ref(1), dir = ref('up');
+    const step = computed(() => Math.max(1, Math.floor(Number(st.value) || 1)));
+    const header = computed(() => {
+      const op = dir.value === 'up' ? '<=' : '>=';
+      const inc = step.value === 1 ? (dir.value === 'up' ? 'i++' : 'i--') : (dir.value === 'up' ? 'i += ' : 'i -= ') + step.value;
+      return 'for (let i = ' + s.value + '; i ' + op + ' ' + l.value + '; ' + inc + ') {\n  console.log(i);\n}';
+    });
+    const vals = computed(() => {
+      const out = [];
+      let i = Number(s.value) || 0;
+      const lim = Number(l.value) || 0;
+      let guard = 0;
+      while ((dir.value === 'up' ? i <= lim : i >= lim) && guard < 40) {
+        out.push(i);
+        i += dir.value === 'up' ? step.value : -step.value;
+        guard++;
+      }
+      return out;
+    });
+    return { s, l, st, dir, header, vals };
+  },
+  template: `
+  <div class="fb">
+    <div class="fb-controls">
+      <label>Mulai<input type="number" v-model.number="s" min="0" max="30" id="fb-s"></label>
+      <label>Batas<input type="number" v-model.number="l" min="0" max="30" id="fb-l"></label>
+      <label>Langkah<input type="number" v-model.number="st" min="1" max="10" id="fb-st"></label>
+      <div class="seg" role="group" aria-label="Arah hitung">
+        <button :class="{ on: dir === 'up' }" @click="dir = 'up'">Naik</button>
+        <button :class="{ on: dir === 'down' }" @click="dir = 'down'">Turun</button>
+      </div>
+    </div>
+    <pre class="fb-code">{{ header }}</pre>
+    <div class="fb-cells" aria-live="polite"><span v-for="(v, i) in vals" :key="i + '-' + v">{{ v }}</span></div>
+    <p class="note">{{ vals.length ? 'Badan perulangan berjalan ' + vals.length + ' kali' + (vals.length >= 40 ? ' (ditampilkan maksimal 40)' : '') + '.' : 'Badan perulangan tidak berjalan sama sekali: kondisi salah sejak awal.' }}</p>
+  </div>`
+};
+
+const Breath = {
+  props: { done: Boolean },
+  emits: ['finish'],
+  setup(props, { emit }) {
+    const phase = ref('idle');
+    const count = ref(0);
+    let timer = null;
+    function step() {
+      if (phase.value === 'in') { phase.value = 'out'; timer = setTimeout(step, 4000); }
+      else if (phase.value === 'out') {
+        count.value++;
+        if (count.value >= 3) { phase.value = 'done'; emit('finish'); return; }
+        phase.value = 'in'; timer = setTimeout(step, 4000);
+      }
+    }
+    function start() { clearTimeout(timer); count.value = 0; phase.value = 'in'; timer = setTimeout(step, 4000); }
+    onBeforeUnmount(() => clearTimeout(timer));
+    const say = computed(() => ({
+      idle: props.done ? 'Jeda ini sudah kamu lakukan. Ulangi kapan pun kamu butuh.' : 'Duduk tegak, bahu turun. Tekan mulai untuk tiga napas pelan.',
+      in: 'Tarik napas pelan…', out: 'Hembuskan pelan…', done: 'Selesai. Rasakan jeda ini sebelum lanjut belajar.'
+    })[phase.value]);
+    const orb = computed(() => ({ idle: 'Siap', in: 'Tarik', out: 'Hembus', done: 'Selesai' })[phase.value]);
+    return { phase, count, start, say, orb };
+  },
+  template: `
+  <div class="orb" :class="phase" aria-hidden="true">{{ orb }}</div>
+  <div style="display:grid;gap:10px;min-width:0">
+    <p class="say" aria-live="polite">{{ say }}</p>
+    <p class="note" v-if="phase === 'in' || phase === 'out'">Napas ke-{{ count + 1 }} dari 3</p>
+    <div><button class="btn small" @click="start" :disabled="phase === 'in' || phase === 'out'">{{ phase === 'idle' && !done ? 'Mulai jeda 3 napas' : 'Ulangi jeda' }}</button></div>
+  </div>`
+};
+
+/* ---------- Aplikasi ---------- */
+const LS_KEY = 'petualangan-kode-v1';
+function loadState() {
+  const base = { cleared: {}, jeda: {}, quiz: {}, jurnal: {}, lab: {}, tugas: {}, profil: { nama: '', kelas: '', absen: '', sekolah: '', guru: '' } };
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) return Object.assign(base, JSON.parse(raw));
+  } catch (e) {}
+  return base;
+}
+const RANKS = [
+  { at: 0, name: 'Pemula Sintaks' }, { at: 100, name: 'Penjelajah Kode' }, { at: 300, name: 'Pemburu Bug' },
+  { at: 500, name: 'Arsitek Logika' }, { at: 700, name: 'Kreator Kode' }
+];
+
+const app = createApp({
+  setup() {
+    const state = reactive(loadState());
+    const hash = ref(location.hash.replace('#', ''));
+    const tab = ref('misi');
+    const exIdx = ref(0);
+    const showHint = ref(false);
+    const results = ref(null);
+    const checking = ref(false);
+    const toast = ref('');
+    const confirmReset = ref(false);
+    const padRef = ref(null);
+    let toastTimer = null;
+
+    const tabs = [
+      { key: 'misi', label: 'Misi' }, { key: 'lab', label: 'Lab' }, { key: 'tantangan', label: 'Tantangan' },
+      { key: 'kuis', label: 'Kuis' }, { key: 'refleksi', label: 'Refleksi' }
+    ];
+    const level = computed(() => {
+      const m = /^level-(\d+)$/.exec(hash.value);
+      if (!m) return null;
+      return LEVELS.find((l) => l.id === Number(m[1])) || null;
+    });
+    window.addEventListener('hashchange', () => { hash.value = location.hash.replace('#', ''); });
+    watch(level, () => { tab.value = 'misi'; exIdx.value = 0; showHint.value = false; results.value = null; window.scrollTo(0, 0); });
+    watch(tab, () => { window.scrollTo({ top: 0 }); });
+    watch(hash, (h, o) => { if (h === 'lembar' || o === 'lembar') window.scrollTo(0, 0); });
+    watch(state, () => { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) {} }, { deep: true });
+
+    function showToast(msg) {
+      toast.value = msg; clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.value = ''; }, 2600);
+    }
+    const quizCorrect = (l) => (state.quiz[l.id] || []).filter((c, qi) => c !== null && c !== undefined && c === l.kuis[qi].a).length;
+    const jurnalOk = (l) => (state.jurnal[l.id] || '').trim().length >= 20;
+    const levelXp = (l) => quizCorrect(l) * 10 + (state.cleared[l.id] ? 50 : 0) + (jurnalOk(l) ? 10 : 0) + (state.jeda[l.id] ? 5 : 0);
+    const LEVEL_MAX = 95;
+    const xp = computed(() => LEVELS.reduce((a, l) => a + levelXp(l), 0));
+    const maxXp = LEVELS.length * LEVEL_MAX;
+    const rank = computed(() => RANKS.filter((r) => xp.value >= r.at).pop());
+    const pct = computed(() => Math.round(xp.value / maxXp * 100));
+    const doneCount = computed(() => LEVELS.filter((l) => state.cleared[l.id]).length);
+    const nextLevel = computed(() => { const n = LEVELS.find((l) => !state.cleared[l.id]); return n ? n.id : LEVELS.length; });
+
+    // xp gain toasts
+    let lastXp = xp.value;
+    watch(xp, (n) => { if (n > lastXp) showToast('+' + (n - lastXp) + ' XP'); lastXp = n; });
+
+    function finishJeda() { if (level.value) state.jeda[level.value.id] = true; }
+
+    // challenge
+    const allOk = computed(() => !!results.value && results.value.every((r) => r.ok));
+    async function checkChallenge() {
+      const l = level.value; const ch = l.tantangan;
+      const code = padRef.value.code;
+      checking.value = true; results.value = null;
+      const list = [];
+      for (const r of ch.rules) {
+        const hit = new RegExp(r.re).test(code);
+        list.push({ label: r.label, ok: r.not ? !hit : hit });
+      }
+      for (const t of ch.tests) {
+        const r = await execCode(code, t.inputs || []);
+        let ok = false, got = '';
+        if (r.timedOut) got = 'Program tidak berhenti dalam 2 detik (curigai infinite loop).';
+        else if (r.err) got = r.err.name + ': ' + r.err.message;
+        else {
+          const logs = r.out.filter((o) => o.k === 'log').map((o) => o.t.trim());
+          if (t.expect) {
+            ok = JSON.stringify(logs) === JSON.stringify(t.expect);
+            got = 'Outputmu: ' + (logs.length ? logs.join(' | ') : '(kosong)') + '   Harapan: ' + t.expect.join(' | ');
+          } else { ok = logs.length >= (t.min || 1); got = 'Hanya ' + logs.length + ' baris tercetak.'; }
+        }
+        list.push({ label: t.label, ok: ok, got: ok ? '' : got });
+      }
+      results.value = list; checking.value = false;
+      if (!state.tugas[l.id]) state.tugas[l.id] = {};
+      const t = state.tugas[l.id];
+      t.code = code;
+      t.results = list.map((r) => ({ label: r.label, ok: r.ok }));
+      t.at = Date.now();
+      if (list.every((r) => r.ok) && !state.cleared[l.id]) state.cleared[l.id] = true;
+    }
+
+    // quiz
+    const answered = (qi) => { const a = state.quiz[level.value.id]; return !!a && a[qi] !== null && a[qi] !== undefined; };
+    const isRight = (q, qi) => state.quiz[level.value.id][qi] === q.a;
+    function answer(q, qi, oi) {
+      const id = level.value.id;
+      if (!state.quiz[id]) state.quiz[id] = level.value.kuis.map(() => null);
+      state.quiz[id][qi] = oi;
+    }
+    function optClass(q, qi, oi) {
+      if (!answered(qi)) return '';
+      if (oi === q.a) return 'right';
+      if (state.quiz[level.value.id][qi] === oi) return 'wrong';
+      return '';
+    }
+    const quizScore = computed(() => level.value ? quizCorrect(level.value) : 0);
+    const quizAnswered = computed(() => level.value && (state.quiz[level.value.id] || []).some((c) => c !== null && c !== undefined));
+    function resetQuiz() { state.quiz[level.value.id] = level.value.kuis.map(() => null); }
+
+    /* ---- lembar hasil belajar ---- */
+    const opsi = reactive({ kode: true, output: true, kosong: false });
+    const copyMsg = ref('');
+    const fallbackText = ref('');
+    const todayStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    const kuisBenar = computed(() => LEVELS.reduce((a, l) => a + quizCorrect(l), 0));
+    const kuisSoal = LEVELS.reduce((a, l) => a + l.kuis.length, 0);
+    const identOk = computed(() => !!(String(state.profil.nama).trim() && String(state.profil.kelas).trim() && String(state.profil.absen).trim()));
+
+    function formatOut(res) {
+      return res.out.slice(0, 60).map((o) => o.k === 'ask' ? '? ' + o.t : (o.k === 'ans' ? '> ' + o.t : o.t));
+    }
+    function onRan(ev) {
+      if (!ev.lid || !ev.kind) return;
+      const err = ev.res.err ? ev.res.err.name + ': ' + ev.res.err.message : '';
+      if (ev.kind === 'lab') {
+        if (!state.lab[ev.lid]) state.lab[ev.lid] = {};
+        state.lab[ev.lid][ev.name] = { code: ev.code, out: formatOut(ev.res), err: err, timedOut: !!ev.res.timedOut, at: Date.now() };
+      } else if (ev.kind === 'tugas') {
+        if (!state.tugas[ev.lid]) state.tugas[ev.lid] = {};
+        state.tugas[ev.lid].code = ev.code;
+      }
+    }
+    const labList = (l) => { const m = state.lab[l.id] || {}; return l.contoh.filter((e) => m[e.name]).map((e) => Object.assign({ name: e.name }, m[e.name])); };
+    const tugas = (l) => state.tugas[l.id] || null;
+    const tugasStart = (l) => { const t = state.tugas[l.id]; return t && t.code ? t.code : l.tantangan.starter; };
+    const jurnalText = (l) => (state.jurnal[l.id] || '').trim();
+    const quizRows = (l) => {
+      const a = state.quiz[l.id] || [];
+      return l.kuis.map((q, qi) => {
+        const c = a[qi]; const done = c !== null && c !== undefined;
+        return { no: qi + 1, q: q.q, done: done, jawab: done ? q.opts[c] : '(belum dijawab)', benar: done && c === q.a, kunci: q.opts[q.a] };
+      });
+    };
+    const hasActivity = (l) => labList(l).length > 0 || !!(tugas(l) && (tugas(l).code || tugas(l).results)) || (state.quiz[l.id] || []).some((c) => c !== null && c !== undefined) || !!jurnalText(l);
+    const sheetLevels = computed(() => LEVELS.filter((l) => opsi.kosong || hasActivity(l)));
+    const ringkas = computed(() => LEVELS.map((l) => ({ id: l.id, game: l.game, tantangan: state.cleared[l.id] ? 'Lulus' : 'Belum', kuis: quizCorrect(l) + ' / ' + l.kuis.length, refleksi: jurnalOk(l) ? 'Terisi' : 'Belum', xp: levelXp(l) })));
+    function outText(e) {
+      let t = (e.out || []).join('\n');
+      if (e.err) t += (t ? '\n' : '') + 'ERROR ' + e.err;
+      if (e.timedOut) t += (t ? '\n' : '') + 'Program dihentikan: tidak berhenti dalam 2 detik.';
+      return t || '(tidak ada output)';
+    }
+    function textReport() {
+      const p = state.profil; const L = [];
+      L.push('LEMBAR HASIL BELAJAR', 'Dasar Pemrograman - Kelas X RPL - JavaScript', '');
+      L.push('Nama       : ' + (p.nama.trim() || '-'));
+      L.push('Kelas      : ' + (p.kelas.trim() || '-'));
+      L.push('No. absen  : ' + (String(p.absen).trim() || '-'));
+      if (p.sekolah.trim()) L.push('Sekolah    : ' + p.sekolah.trim());
+      if (p.guru.trim()) L.push('Guru       : ' + p.guru.trim());
+      L.push('Tanggal    : ' + todayStr, '');
+      L.push('RINGKASAN');
+      L.push('Level selesai ' + doneCount.value + '/' + LEVELS.length + ' | XP ' + xp.value + '/' + maxXp + ' | Kuis benar ' + kuisBenar.value + '/' + kuisSoal + ' | Peringkat ' + rank.value.name);
+      ringkas.value.forEach((r) => L.push('Level ' + r.id + ' ' + r.game + ': tantangan ' + r.tantangan + ', kuis ' + r.kuis + ', refleksi ' + r.refleksi + ', ' + r.xp + ' XP'));
+      sheetLevels.value.forEach((l) => {
+        L.push('', '=== LEVEL ' + l.id + ': ' + l.game + ' (' + l.tp + ') ===', 'A. Percobaan program');
+        const labs = labList(l);
+        if (!labs.length) L.push('Belum ada percobaan yang dijalankan.');
+        labs.forEach((e) => {
+          L.push('- ' + e.name);
+          if (opsi.kode) L.push(e.code);
+          if (opsi.output) L.push('Output:', outText(e));
+        });
+        L.push('B. Tantangan (' + l.tantangan.judul + '): ' + (state.cleared[l.id] ? 'Lulus' : 'Belum lulus'));
+        const t = tugas(l);
+        if (t && t.results) t.results.forEach((r) => L.push((r.ok ? '[v] ' : '[x] ') + r.label));
+        if (opsi.kode && t && t.code) L.push('Kode jawaban:', t.code);
+        L.push('C. Jawaban kuis');
+        quizRows(l).forEach((r) => L.push(r.no + '. ' + r.q + ' -> ' + r.jawab + (r.done ? (r.benar ? ' (Benar)' : ' (Salah, kunci: ' + r.kunci + ')') : '')));
+        L.push('D. Refleksi: ' + l.refleksi, jurnalText(l) || 'Belum diisi.');
+      });
+      return L.join('\n');
+    }
+    function copySheet() {
+      const el = document.getElementById('sheet');
+      const sel = window.getSelection();
+      const r = document.createRange();
+      r.selectNodeContents(el);
+      sel.removeAllRanges(); sel.addRange(r);
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      copyMsg.value = ok ? 'Lembar tersalin. Tempel di Google Docs atau Word, lalu simpan sebagai PDF.' : 'Lembar sudah terpilih di layar. Tekan Ctrl + C (Cmd + C di Mac) untuk menyalin.';
+      fallbackText.value = '';
+    }
+    async function copyText() {
+      const t = textReport();
+      try {
+        await navigator.clipboard.writeText(t);
+        copyMsg.value = 'Teks tersalin. Tempel di Google Docs atau Word.';
+        fallbackText.value = '';
+      } catch (e) {
+        fallbackText.value = t;
+        copyMsg.value = 'Browser menolak menyalin otomatis. Teks sudah dipilih di kotak di bawah; tekan Ctrl + C.';
+        nextTick(() => { const ta = document.getElementById('fallback-text'); if (ta) { ta.focus(); ta.select(); } });
+      }
+    }
+
+    function tabDone(k) {
+      const l = level.value; if (!l) return false;
+      if (k === 'misi') return !!state.jeda[l.id];
+      if (k === 'tantangan') return !!state.cleared[l.id];
+      if (k === 'kuis') { const a = state.quiz[l.id]; return !!a && a.every((c) => c !== null && c !== undefined); }
+      if (k === 'refleksi') return jurnalOk(l);
+      return false;
+    }
+
+    function toggleTheme() {
+      const el = document.documentElement;
+      const cur = el.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      el.dataset.theme = cur === 'dark' ? 'light' : 'dark';
+    }
+    function resetAll() {
+      state.cleared = {}; state.jeda = {}; state.quiz = {}; state.jurnal = {}; state.lab = {}; state.tugas = {};
+      state.profil = { nama: '', kelas: '', absen: '', sekolah: '', guru: '' };
+      confirmReset.value = false; showToast('Progres dihapus');
+    }
+    const pad2 = (n) => String(n).padStart(2, '0');
+
+    return {
+      state, level, levels: LEVELS, tabs, tab, exIdx, showHint, results, checking, toast, confirmReset, padRef,
+      xp, maxXp, rank, pct, doneCount, nextLevel, LEVEL_MAX, levelXp, finishJeda, allOk, checkChallenge,
+      answered, isRight, answer, optClass, quizScore, quizAnswered, resetQuiz, tabDone, toggleTheme, resetAll,
+      hash, opsi, copyMsg, fallbackText, todayStr, kuisBenar, kuisSoal, identOk, onRan, labList, tugas, tugasStart,
+      jurnalText, quizRows, sheetLevels, ringkas, outText, copySheet, copyText,
+      pad: pad2, heroCode: "// Coba ubah teksnya\nconst nama = 'Dunia';\n\nfor (let i = 1; i <= 3; i++) {\n  console.log('Halo, ' + nama + '! (' + i + ')');\n}"
+    };
+  }
+});
+app.component('code-pad', CodePad);
+app.component('for-builder', ForBuilder);
+app.component('breath', Breath);
+app.mount('#app');
+</script>
+
+</body></html>
